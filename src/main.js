@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
 import { app as firebaseApp } from './firebase'; // Importeer de Firebase app
+//import { getFirestore } from "firebase/firestore";
 
 console.log("main.js: Start applicatie laden");
 

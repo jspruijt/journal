@@ -292,8 +292,15 @@ const sanitizeText = (text) => {
 };
 
 const getTaskSchedule = (task, date) => {
-  return task.scheduledDates?.find(d => d.date === date) ||
-         (task.timesByDate && task.timesByDate[date] ? { startTime: task.timesByDate[date].startTime, endTime: task.timesByDate[date].endTime, completed: false } : null);
+  const scheduleFromDates = task.scheduledDates?.find(d => d.date === date);
+  if (scheduleFromDates) {
+    return { ...scheduleFromDates };
+  }
+  const scheduleFromTimes = task.timesByDate?.[date];
+  if (scheduleFromTimes) {
+    return { ...scheduleFromTimes };
+  }
+  return null;
 };
 
 const getTaskTimeKey = (task, date) => {
@@ -494,13 +501,8 @@ const onDrop = async (event, date) => {
 
 const toggleTaskCompletion = (task, date) => {
   const taskIndex = task.originalIndex;
-  const updatedTask = { ...task };
-  const dateObj = updatedTask.scheduledDates.find(d => d.date === date);
-  if (dateObj) {
-    dateObj.completed = !dateObj.completed;
-    taskStore.updateTask(taskIndex, updatedTask);
-    taskCache.value.clear();
-  }
+  taskStore.toggleTaskInstanceCompletion(taskIndex, date);
+  taskCache.value.clear();
 };
 
 const deleteTaskInstance = (task, date) => {
