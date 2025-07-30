@@ -6,30 +6,32 @@
     <div class="mood-overview">
       <h2>Stemming Overzicht</h2>
       <div class="charts">
-        <div class="chart-container">
+        <div class="chart-container" v-if="!isLoading">
           <h3>Laatste Week</h3>
           <div id="weekMoodChart"></div>
         </div>
-        <div class="chart-container">
+        <div class="chart-container" v-if="!isLoading">
           <h3>Laatste Maand</h3>
           <div id="monthMoodChart"></div>
         </div>
-        <div class="average-container">
+        <div class="average-container" v-if="!isLoading">
           <h3>Gemiddeld Overall</h3>
           <p>{{ overallAverage.toFixed(1) }}</p>
         </div>
+        <div v-else class="loading-message">Laden...</div>
       </div>
     </div>
 
     <!-- Lijfspreuken Overzicht -->
     <div class="mottos-overview">
       <h2>Lijfspreuken</h2>
-      <ul class="mottos-list">
+      <ul class="mottos-list" v-if="!isLoading">
         <li v-for="(motto, index) in paginatedMottos" :key="index">
           {{ motto }}
         </li>
       </ul>
-      <div class="pagination">
+      <div v-else class="loading-message">Laden...</div>
+      <div class="pagination" v-if="!isLoading">
         <button @click="previousPage" :disabled="currentPage === 1">Vorige</button>
         <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
         <button @click="nextPage" :disabled="currentPage === totalPages">Volgende</button>
@@ -39,7 +41,7 @@
     <!-- Laatste 7 Dagen Overzicht -->
     <div class="last-seven-days">
       <h2>Afgelopen 7 Dagen</h2>
-      <div v-for="day in lastSevenDays" :key="day.date" class="day-entry">
+      <div v-for="day in lastSevenDays" :key="day.date" class="day-entry" v-if="!isLoading">
         <h3>{{ formatDate(day.date) }}</h3>
         <div v-if="day.entry">
           <p><strong>Inhoud:</strong> {{ day.entry.content || 'Geen inhoud' }}</p>
@@ -48,6 +50,7 @@
         </div>
         <p v-else>Geen gegevens voor deze dag</p>
       </div>
+      <div v-else class="loading-message">Laden...</div>
     </div>
   </div>
 </template>
@@ -55,22 +58,35 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import p5 from 'p5';
+import { db } from '../firebase'; // Importeer Firestore
+import { collection, getDocs } from 'firebase/firestore';
 
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const diaryEntries = ref([]);
+const isLoading = ref(true); // Nieuwe state voor laadinicator
 
-onMounted(() => {
-  // Laad alle dagboekvermeldingen uit localStorage
-  const rawEntries = localStorage.getItem('diaryEntries') || '[]';
-  diaryEntries.value = JSON.parse(rawEntries);
-
-  // Initialiseer grafieken
+onMounted(async () => {
+  await loadEntries();
   initCharts();
 });
 
+const loadEntries = async () => {
+  isLoading.value = true;
+  try {
+    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
+    diaryEntries.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Fout bij het laden van dagboekvermeldingen:', error);
+    diaryEntries.value = []; // Fallback naar lege array bij fout
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 // Grafieken initialiseren met p5.js
 const initCharts = () => {
+  if (isLoading.value) return; // Voorkom initialisatie tijdens laden
   const weekData = getMoodData('week');
   new p5((sketch) => {
     sketch.setup = () => {
@@ -285,5 +301,11 @@ h2 {
 
 .day-entry p {
   margin: 5px 0;
+}
+
+.loading-message {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
 }
 </style>

@@ -66,6 +66,7 @@ const taskStore = useTaskStore();
 const router = useRouter();
 const route = useRoute();
 const task = ref({
+  id: "",
   name: "",
   type: "one-time",
   date: "",
@@ -82,21 +83,14 @@ const task = ref({
   scheduledDates: [],
 });
 
-onMounted(() => {
-  const rawIndex = route.params.index;
+onMounted(async () => {
+  const taskId = route.params.id; // Gebruik id in plaats van index
   console.log("Route params:", route.params);
-  console.log("Task store tasks:", taskStore.tasks);
-  const taskIndex = parseInt(rawIndex);
-  if (isNaN(taskIndex)) {
-    console.error("Invalid task index:", rawIndex);
-    alert("Ongeldige taak-index. Ga terug en probeer opnieuw.");
-    router.push("/");
-    return;
-  }
-  const taskData = taskStore.tasks[taskIndex];
+  const taskData = taskStore.tasks.find(task => task.id === taskId);
   console.log("Loaded task data:", taskData);
-  if (taskData && taskIndex >= 0 && taskIndex < taskStore.tasks.length) {
+  if (taskData) {
     task.value = {
+      id: taskData.id,
       name: taskData.name || "",
       type: taskData.type || "one-time",
       date: taskData.dates && taskData.dates.length > 0 ? taskData.dates[0] : "",
@@ -106,12 +100,12 @@ onMounted(() => {
       startTime: taskData.type === "one-time" && taskData.dates && taskData.dates.length > 0
         ? taskData.timesByDate[taskData.dates[0]]?.startTime || ""
         : taskData.scheduledDates && taskData.scheduledDates.length > 0
-          ? taskData.scheduledDates[0].startTime || "09:00" // Default waarde
+          ? taskData.scheduledDates[0].startTime || "09:00"
           : "09:00",
       endTime: taskData.type === "one-time" && taskData.dates && taskData.dates.length > 0
         ? taskData.timesByDate[taskData.dates[0]]?.endTime || ""
         : taskData.scheduledDates && taskData.scheduledDates.length > 0
-          ? taskData.scheduledDates[0].endTime || "10:00" // Default waarde
+          ? taskData.scheduledDates[0].endTime || "10:00"
           : "10:00",
       tagsInput: taskData.tags ? taskData.tags.join(", ") : "",
       completed: taskData.completed || false,
@@ -123,20 +117,20 @@ onMounted(() => {
       scheduledDates: taskData.scheduledDates || [],
     };
   } else {
-    console.error("Invalid task index or task data not found:", taskIndex);
+    console.error("Task not found:", taskId);
     alert("Taak niet gevonden. Ga terug en probeer opnieuw.");
     router.push("/");
   }
 });
 
-const saveTask = () => {
+const saveTask = async () => {
   if (!task.value.name.trim() || task.value.name.includes("<!--")) {
     alert("Taaknaam mag niet leeg zijn en geen ongeldige HTML bevatten (bijv. <!--).");
     return;
   }
 
-  const taskIndex = parseInt(route.params.index);
   const updatedTask = {
+    id: task.value.id, // Voeg de ID toe voor Firestore-update
     name: task.value.name.trim(),
     type: task.value.type,
     completed: task.value.completed,
@@ -184,7 +178,7 @@ const saveTask = () => {
     updatedTask.scheduledDates = generateScheduledDates();
   }
 
-  taskStore.updateTask(taskIndex, updatedTask);
+  await taskStore.updateTask(task.value.id, updatedTask); // Asynchroon bijwerken in Firestore
   router.push("/");
 
   function generateScheduledDates() {

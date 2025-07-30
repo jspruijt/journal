@@ -4,7 +4,7 @@
     <div v-if="isStoreInitialized">
       <div v-if="unplannedTasks.length" class="task-list">
         <ul>
-          <li v-for="task in unplannedTasks" :key="task.originalIndex">
+          <li v-for="task in unplannedTasks" :key="task.id">
             <div class="task-info">
               <span
                 class="task-name"
@@ -16,14 +16,14 @@
             <div class="task-actions">
               <button
                 class="icon-button"
-                @click="$router.push(`/edit-task/${task.originalIndex}`)"
+                @click="$router.push(`/edit-task/${task.id}`)"
                 aria-label="Bewerk taak"
               >
                 ✏️
               </button>
               <button
                 class="icon-button"
-                @click="taskStore.deleteTask(task.originalIndex)"
+                @click="taskStore.deleteTask(task.id)"
                 aria-label="Verwijder taak"
               >
                 🗑️
@@ -48,8 +48,12 @@ const router = useRouter();
 const isStoreInitialized = ref(false);
 
 onMounted(() => {
-  taskStore.loadTasks();
-  isStoreInitialized.value = true;
+  taskStore.loadTasks().then(() => {
+    isStoreInitialized.value = true;
+  }).catch(error => {
+    console.error("Fout bij het laden van taken:", error);
+    isStoreInitialized.value = true;
+  });
 });
 
 const unplannedTasks = computed(() => {
@@ -63,10 +67,15 @@ const unplannedTasks = computed(() => {
     });
 });
 
+const sanitizeText = (text) => {
+  return text ? text.replace(/<!--|-->/g, "").trim() : "Onbekende taak";
+};
+
 const showTooltip = (event, text) => {
   const element = event.target;
+  const sanitizedText = sanitizeText(text); // Sanitize de text
   if (element.scrollWidth > element.clientWidth) {
-    element.setAttribute("title", text);
+    element.setAttribute("title", sanitizedText);
   } else {
     element.removeAttribute("title");
   }

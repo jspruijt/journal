@@ -10,7 +10,7 @@ const routes = [
   { path: "/", component: Home },
   { path: "/unplanned-tasks", component: UnplannedTasks },
   { path: "/add-task", component: AddTask },
-  { path: "/edit-task/:index", component: EditTask },
+  { path: "/edit-task/:id", component: EditTask },
   { path: "/diary/:date?", component: Diary },
   { path: '/dashboard', component: Dashboard }
 ];

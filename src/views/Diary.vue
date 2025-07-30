@@ -73,6 +73,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { db } from '../firebase'; // Importeer Firestore
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
 const route = useRoute();
 const router = useRouter();
@@ -88,6 +90,7 @@ const entry = ref({
 });
 const newMotto = ref('');
 const savedMessage = ref('');
+const isLoading = ref(false); // Nieuwe state voor laadinicator
 
 onMounted(() => {
   loadEntry();
@@ -98,49 +101,67 @@ watch(() => route.params.date, (newDate) => {
   loadEntry();
 });
 
-const loadEntry = () => {
-  const rawEntries = localStorage.getItem('diaryEntries') || '[]';
-  const diaryEntries = JSON.parse(rawEntries);
-  const existingEntry = diaryEntries.find((e) => e.date === selectedDate.value);
-  if (existingEntry) {
-    entry.value = { ...existingEntry };
-    if (!entry.value.neverForget) {
-      entry.value.neverForget = [];
+const loadEntry = async () => {
+  isLoading.value = true;
+  try {
+    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
+    const diaryEntries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const existingEntry = diaryEntries.find((e) => e.date === selectedDate.value);
+    if (existingEntry) {
+      entry.value = { ...existingEntry };
+      if (!entry.value.neverForget) {
+        entry.value.neverForget = [];
+      }
+    } else {
+      entry.value = { date: selectedDate.value, content: '', limitingThoughts: '', focusThoughts: '', mood: '', tags: '', neverForget: [] };
     }
-  } else {
-    entry.value = { date: selectedDate.value, content: '', limitingThoughts: '', focusThoughts: '', mood: '', tags: '', neverForget: [] };
+  } catch (error) {
+    console.error('Fout bij het laden van dagboekvermelding:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-const saveEntry = () => {
-  const rawEntries = localStorage.getItem('diaryEntries') || '[]';
-  let diaryEntries = JSON.parse(rawEntries);
-  const entryIndex = diaryEntries.findIndex((e) => e.date === selectedDate.value);
-  const newEntry = { ...entry.value, date: selectedDate.value };
+const saveEntry = async () => {
+  if (isLoading.value) return; // Voorkom dubbele submits
+  isLoading.value = true;
+  try {
+    const newEntry = { ...entry.value, date: selectedDate.value };
+    newEntry.neverForget = newEntry.neverForget.filter(item => item && item.trim());
 
-  // Verwijder lege items uit neverForget
-  newEntry.neverForget = newEntry.neverForget.filter(item => item && item.trim());
+    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
+    const diaryEntries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const entryIndex = diaryEntries.findIndex((e) => e.date === selectedDate.value);
 
-  if (entryIndex > -1) {
-    diaryEntries[entryIndex] = newEntry;
-  } else {
-    diaryEntries.push(newEntry);
+    if (entryIndex > -1) {
+      const existingDoc = diaryEntries[entryIndex];
+      await updateDoc(doc(db, 'diaryEntries', existingDoc.id), newEntry);
+    } else {
+      await addDoc(collection(db, 'diaryEntries'), newEntry);
+    }
+
+    savedMessage.value = 'Dagboekvermelding opgeslagen!';
+    setTimeout(() => (savedMessage.value = ''), 2000);
+  } catch (error) {
+    console.error('Fout bij het opslaan van dagboekvermelding:', error);
+    savedMessage.value = 'Fout bij opslaan, probeer het opnieuw.';
+    setTimeout(() => (savedMessage.value = ''), 2000);
+  } finally {
+    isLoading.value = false;
   }
-
-  localStorage.setItem('diaryEntries', JSON.stringify(diaryEntries));
-  savedMessage.value = 'Dagboekvermelding opgeslagen!';
-  setTimeout(() => (savedMessage.value = ''), 2000);
 };
 
 const addMotto = () => {
-  if (newMotto.value.trim()) {
+  if (newMotto.value.trim() && !isLoading.value) {
     entry.value.neverForget.push(newMotto.value.trim());
     newMotto.value = '';
   }
 };
 
 const removeMotto = (index) => {
-  entry.value.neverForget.splice(index, 1);
+  if (!isLoading.value) {
+    entry.value.neverForget.splice(index, 1);
+  }
 };
 
 const formatDate = (dateStr) => {
@@ -198,6 +219,8 @@ textarea {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  opacity: v-bind(isLoading ? '0.6' : '1'); /* Uitschakelen visueel */
+  pointer-events: v-bind(isLoading ? 'none' : 'auto'); /* Uitschakelen interactie */
 }
 
 .save-button:hover {
@@ -236,6 +259,8 @@ textarea {
   justify-content: center;
   transition: color 0.2s, transform 0.1s;
   background-color: transparent;
+  opacity: v-bind(isLoading ? '0.6' : '1'); /* Uitschakelen visueel */
+  pointer-events: v-bind(isLoading ? 'none' : 'auto'); /* Uitschakelen interactie */
 }
 
 .action-button:hover {

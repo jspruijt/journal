@@ -33,7 +33,7 @@
           </div>
           <div
             v-for="task in tasksForDay(day.date)"
-            :key="`${task.originalIndex}-${day.date}-${getTaskTimeKey(task, day.date)}`"
+            :key="`${task.id}-${day.date}-${getTaskTimeKey(task, day.date)}`"
             class="task"
             :style="getTaskPosition(task, day.date)"
           >
@@ -52,10 +52,10 @@
                   type="checkbox"
                   :checked="getTaskSchedule(task, day.date)?.completed ?? false"
                   @change="toggleTaskCompletion(task, day.date)"
-                  :id="'task-' + task.originalIndex + '-' + day.date"
+                  :id="'task-' + task.id + '-' + day.date"
                 />
                 <label
-                  :for="'task-' + task.originalIndex + '-' + day.date"
+                  :for="'task-' + task.id + '-' + day.date"
                   class="task-name"
                   @mouseover="showTooltip($event, sanitizeText(task.name || 'Onbekende taak'))"
                 >
@@ -68,7 +68,7 @@
               <div class="task-actions">
                 <button
                   class="icon-button"
-                  @click="$router.push(`/edit-task/${task.originalIndex}`)"
+                  @click="$router.push(`/edit-task/${task.id}`)"
                   aria-label="Bewerk taak"
                 >
                   ✏️
@@ -91,34 +91,6 @@
         </div>
       </div>
     </div>
-    <div class="unplanned-tasks" v-if="unplannedTasksCount.value > 0">
-      <h2>Ongeplande taken ({{ unplannedTasksCount.value }})</h2>
-      <div v-for="task in unplannedTasks" :key="task.originalIndex" class="unplanned-task">
-        <input
-          type="checkbox"
-          :checked="task.completed ?? false"
-          @change="taskStore.toggleTaskCompletion(task.originalIndex)"
-          :id="'unplanned-task-' + task.originalIndex"
-        />
-        <label :for="'unplanned-task-' + task.originalIndex" class="task-name">
-          {{ sanitizeText(task.name || "Onbekende taak") }}
-        </label>
-        <button
-          class="icon-button"
-          @click="$router.push(`/edit-task/${task.originalIndex}`)"
-          aria-label="Bewerk taak"
-        >
-          ✏️
-        </button>
-        <button
-          class="icon-button"
-          @click="taskStore.deleteTask(task.originalIndex)"
-          aria-label="Verwijder taak"
-        >
-          🗑️
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -126,6 +98,8 @@
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useTaskStore } from "../stores/tasks";
 import { useRouter } from "vue-router";
+import { db } from "../firebase"; // Importeer Firestore
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 const taskStore = useTaskStore();
 const router = useRouter();
@@ -143,12 +117,9 @@ const diaryEntries = ref([]); // Nieuwe ref voor dagboekentries
 
 const taskCache = ref(new Map());
 
-watch(() => [taskStore.tasks, currentWeekStart.value], () => {
-  taskCache.value.clear();
-}, { deep: true });
-
-onMounted(() => {
-  taskStore.loadTasks();
+// Laad taken asynchroon
+onMounted(async () => {
+  await taskStore.loadTasks();
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
@@ -168,23 +139,19 @@ onMounted(() => {
     });
   });
 
-  // Laad dagboekvermeldingen veilig
-  const rawEntries = localStorage.getItem("diaryEntries");
-  if (rawEntries) {
-    try {
-      const parsedEntries = JSON.parse(rawEntries);
-      if (Array.isArray(parsedEntries)) {
-        diaryEntries.value = parsedEntries;
-      } else {
-        console.warn("Parsed diaryEntries is not an array, using empty array instead");
-        diaryEntries.value = [];
-      }
-    } catch (e) {
-      console.error("Failed to parse diaryEntries from localStorage:", e);
-      diaryEntries.value = [];
-    }
+  // Laad dagboekvermeldingen uit Firestore
+  try {
+    const diarySnapshot = await getDocs(collection(db, "diaryEntries"));
+    diaryEntries.value = diarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (e) {
+    console.error("Fout bij het laden van dagboekvermeldingen:", e);
+    diaryEntries.value = [];
   }
 });
+
+watch(() => [taskStore.tasks, currentWeekStart.value], () => {
+  taskCache.value.clear();
+}, { deep: true });
 
 const weekDays = computed(() => {
   console.log("Recalculating weekDays with start:", currentWeekStart.value);
@@ -218,19 +185,6 @@ const tasksForDay = computed(() => {
     }
     return taskCache.value.get(date);
   };
-});
-
-const unplannedTasks = computed(() => {
-  return taskStore.tasks
-    .map((task, index) => ({ ...task, originalIndex: index }))
-    .filter((task) => {
-      return (task.type === "one-time" && (!task.dates || task.dates.length === 0)) ||
-             (task.type === "recurring" && (!task.scheduledDates || task.scheduledDates.length === 0));
-    });
-});
-
-const unplannedTasksCount = computed(() => {
-  return unplannedTasks.value.length;
 });
 
 const hasDiaryEntry = (date) => {
@@ -375,7 +329,7 @@ const onDragStart = (event, task, date, edge) => {
   initialDragOffsetY.value = edge === "bottom" ? rect.bottom - event.clientY : event.clientY - rect.top;
 
   draggedTaskElement.value.style.opacity = "0.5";
-  event.dataTransfer.setData("text/plain", task.originalIndex.toString());
+  event.dataTransfer.setData("text/plain", task.id.toString());
 };
 
 const onDragOver = (event, date) => {
@@ -481,7 +435,7 @@ const onDrop = async (event, date) => {
     }
   }
 
-  taskStore.updateTask(draggedTask.value.originalIndex, updatedTask);
+  await taskStore.updateTask(draggedTask.value.id, updatedTask);
   taskCache.value.clear();
   await nextTick(() => {
     draggedTaskElement.value.style.top = `${lastDragTop.value}px`;
@@ -499,24 +453,21 @@ const onDrop = async (event, date) => {
   originalHeight.value = 0;
 };
 
-const toggleTaskCompletion = (task, date) => {
-  const taskIndex = task.originalIndex;
-  taskStore.toggleTaskInstanceCompletion(taskIndex, date);
-  taskCache.value.clear();
+const toggleTaskCompletion = async (task, date) => {
+  const taskId = task.id;
+  await taskStore.toggleTaskInstanceCompletion(taskId, date);
+  taskCache.value.clear(); // Wis cache na succesvolle update
+  await nextTick(); // Forceer UI-update
 };
 
-const deleteTaskInstance = (task, date) => {
-  const taskIndex = task.originalIndex;
-  const updatedTask = { ...task };
-  if (updatedTask.scheduledDates) {
-    updatedTask.scheduledDates = updatedTask.scheduledDates.filter(d => d.date !== date);
-    if (updatedTask.scheduledDates.length === 0) {
-      taskStore.deleteTask(taskIndex);
-    } else {
-      taskStore.updateTask(taskIndex, updatedTask);
-    }
-    taskCache.value.clear();
-  }
+const deleteTaskInstance = async (task, date) => {
+  console.log("deleteTaskInstance called for task:", task, "on date:", date);
+  const taskId = task.id;
+  console.log("Task ID:", taskId);
+  await taskStore.deleteTaskInstance(taskId, date); // Gebruik de nieuwe methode
+  taskCache.value.clear();
+  console.log("Cache cleared, forcing UI update...");
+  await nextTick();
 };
 </script>
 
@@ -749,21 +700,6 @@ const deleteTaskInstance = (task, date) => {
 
 .task-actions .icon-button:hover {
   color: #007bff;
-}
-
-.unplanned-tasks {
-  margin-top: 20px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-}
-
-.unplanned-task {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 5px;
 }
 
 h1, h2 {

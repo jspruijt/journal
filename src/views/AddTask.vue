@@ -75,7 +75,7 @@ const task = ref({
   customDates: [""], // Array voor aangepaste datums
 });
 
-const saveTask = () => {
+const saveTask = async () => {
   // Valideer invoer om ongeldige karakters te voorkomen
   if (!task.value.name.trim() || task.value.name.includes("<!--")) {
     alert("Taaknaam mag niet leeg zijn en geen ongeldige HTML bevatten (bijv. <!--).");
@@ -121,7 +121,7 @@ const saveTask = () => {
     newTask.scheduledDates = generateScheduledDates();
   }
 
-  taskStore.addTask(newTask);
+  await taskStore.addTask(newTask); // Asynchroon toevoegen aan Firestore
   router.push("/");
 
   function generateScheduledDates() {

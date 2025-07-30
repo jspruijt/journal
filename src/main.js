@@ -2,8 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
-import { app as firebaseApp } from './firebase'; // Importeer de Firebase app
-//import { getFirestore } from "firebase/firestore";
+import { db as firebaseApp } from './firebase'; // Importeer de Firebase app
 
 console.log("main.js: Start applicatie laden");
 
