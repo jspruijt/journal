@@ -1,0 +1,221 @@
+[debug] [2025-07-31T09:34:38.975Z] ----------------------------------------------------------------------
+[debug] [2025-07-31T09:34:38.984Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve
+[debug] [2025-07-31T09:34:38.985Z] CLI Version:   14.11.1
+[debug] [2025-07-31T09:34:38.985Z] Platform:      darwin
+[debug] [2025-07-31T09:34:38.985Z] Node Version:  v22.16.0
+[debug] [2025-07-31T09:34:38.986Z] Time:          Thu Jul 31 2025 10:34:38 GMT+0100 (Western European Summer Time)
+[debug] [2025-07-31T09:34:38.986Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-31T09:34:39.425Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-31T09:34:39.425Z] > authorizing via signed-in user (joostspruijt@hotmail.com)
+[debug] [2025-07-31T09:34:39.426Z] [iam] checking project journal-ddaf4 for permissions ["firebase.projects.get"]
+[debug] [2025-07-31T09:34:39.427Z] Checked if tokens are valid: false, expires at: 1753873601955
+[debug] [2025-07-31T09:34:39.427Z] Checked if tokens are valid: false, expires at: 1753873601955
+[debug] [2025-07-31T09:34:39.427Z] > refreshing access token with scopes: []
+[debug] [2025-07-31T09:34:39.430Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-07-31T09:34:39.430Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-31T09:34:39.901Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-07-31T09:34:39.902Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-31T09:34:39.936Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions [none]
+[debug] [2025-07-31T09:34:39.937Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions x-goog-quota-user=projects/journal-ddaf4
+[debug] [2025-07-31T09:34:39.937Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T09:34:40.449Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions 200
+[debug] [2025-07-31T09:34:40.449Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T09:34:40.451Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:40.451Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:40.451Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/journal-ddaf4/services/cloudresourcemanager.googleapis.com [none]
+[debug] [2025-07-31T09:34:40.452Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/journal-ddaf4/services/cloudresourcemanager.googleapis.com x-goog-quota-user=projects/journal-ddaf4
+[debug] [2025-07-31T09:34:41.396Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/journal-ddaf4/services/cloudresourcemanager.googleapis.com 200
+[debug] [2025-07-31T09:34:41.396Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/journal-ddaf4/services/cloudresourcemanager.googleapis.com [omitted]
+[debug] [2025-07-31T09:34:41.414Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:41.414Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:41.415Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T09:34:41.796Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 200
+[debug] [2025-07-31T09:34:41.796Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 {"projectNumber":"136356893420","projectId":"journal-ddaf4","lifecycleState":"ACTIVE","name":"Journal","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-07-23T07:51:24.776618Z"}
+[info] 
+[info] === Serving from '/Users/joost/tasks'...
+[info] 
+[debug] [2025-07-31T09:34:41.799Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:41.799Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:41.800Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 
+[debug] [2025-07-31T09:34:42.855Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 200
+[debug] [2025-07-31T09:34:42.855Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites {"sites":[{"name":"projects/journal-ddaf4/sites/journal-ddaf4","defaultUrl":"https://journal-ddaf4.web.app","appId":"1:136356893420:web:5162103d01918488e84bc9","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-31T09:34:42.855Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:42.855Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:42.855Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config [none]
+[debug] [2025-07-31T09:34:43.576Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config 200
+[debug] [2025-07-31T09:34:43.576Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config {"projectId":"journal-ddaf4","appId":"1:136356893420:web:5162103d01918488e84bc9","storageBucket":"journal-ddaf4.firebasestorage.app","apiKey":"AIzaSyCX8g2c5jzORlgQKz57vahIsO-TP1nGX5E","authDomain":"journal-ddaf4.firebaseapp.com","messagingSenderId":"136356893420","measurementId":"G-25Y1KHZNNP"}
+[debug] [2025-07-31T09:34:43.597Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:43.597Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:34:43.598Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T09:34:43.893Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 200
+[debug] [2025-07-31T09:34:43.893Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 {"projectId":"journal-ddaf4","projectNumber":"136356893420","displayName":"Journal","name":"projects/journal-ddaf4","resources":{"hostingSite":"journal-ddaf4"},"state":"ACTIVE","etag":"1_4e912aa1-1168-4627-80d7-069e6bedf025"}
+[info] i  hosting[journal-ddaf4]: Serving hosting files from: dist {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mdist\u001b[22m"}}
+[info] ✔  hosting[journal-ddaf4]: Local server: http://localhost:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5000\u001b[22m\u001b[24m"}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:34:54 +0000] "GET / HTTP/1.1" 200 428 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:34:54 +0000] \"GET / HTTP/1.1\" 200 428 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:34:55 +0000] "GET /assets/index-BvfBSJJC.css HTTP/1.1" 200 - "http://localhost:5000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:34:55 +0000] \"GET /assets/index-BvfBSJJC.css HTTP/1.1\" 200 - \"http://localhost:5000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:34:55 +0000] "GET /assets/index-BvD6fS3r.js HTTP/1.1" 200 - "http://localhost:5000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:34:55 +0000] \"GET /assets/index-BvD6fS3r.js HTTP/1.1\" 200 - \"http://localhost:5000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:34:56 +0000] "GET /undefinedservice-worker.js HTTP/1.1" 200 428 "http://localhost:5000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:34:56 +0000] \"GET /undefinedservice-worker.js HTTP/1.1\" 200 428 \"http://localhost:5000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:34:56 +0000] "GET /favicon.ico HTTP/1.1" 200 - "http://localhost:5000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:34:56 +0000] \"GET /favicon.ico HTTP/1.1\" 200 - \"http://localhost:5000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:35:17 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:35:17 +0000] \"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1\" 404 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[debug] [2025-07-31T09:46:27.179Z] ----------------------------------------------------------------------
+[debug] [2025-07-31T09:46:27.186Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve
+[debug] [2025-07-31T09:46:27.186Z] CLI Version:   14.11.1
+[debug] [2025-07-31T09:46:27.187Z] Platform:      darwin
+[debug] [2025-07-31T09:46:27.187Z] Node Version:  v22.16.0
+[debug] [2025-07-31T09:46:27.187Z] Time:          Thu Jul 31 2025 10:46:27 GMT+0100 (Western European Summer Time)
+[debug] [2025-07-31T09:46:27.187Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-31T09:46:27.597Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-31T09:46:27.598Z] > authorizing via signed-in user (joostspruijt@hotmail.com)
+[debug] [2025-07-31T09:46:27.598Z] [iam] checking project journal-ddaf4 for permissions ["firebase.projects.get"]
+[debug] [2025-07-31T09:46:27.599Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:27.599Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:27.600Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions [none]
+[debug] [2025-07-31T09:46:27.600Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions x-goog-quota-user=projects/journal-ddaf4
+[debug] [2025-07-31T09:46:27.600Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T09:46:28.500Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions 200
+[debug] [2025-07-31T09:46:28.501Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T09:46:28.502Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:28.502Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:28.502Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T09:46:28.744Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 200
+[debug] [2025-07-31T09:46:28.744Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 {"projectNumber":"136356893420","projectId":"journal-ddaf4","lifecycleState":"ACTIVE","name":"Journal","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-07-23T07:51:24.776618Z"}
+[info] 
+[info] === Serving from '/Users/joost/tasks'...
+[info] 
+[debug] [2025-07-31T09:46:28.749Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:28.750Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:28.750Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 
+[debug] [2025-07-31T09:46:29.855Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 200
+[debug] [2025-07-31T09:46:29.855Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites {"sites":[{"name":"projects/journal-ddaf4/sites/journal-ddaf4","defaultUrl":"https://journal-ddaf4.web.app","appId":"1:136356893420:web:5162103d01918488e84bc9","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-31T09:46:29.856Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:29.856Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:29.856Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config [none]
+[debug] [2025-07-31T09:46:30.748Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config 200
+[debug] [2025-07-31T09:46:30.749Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config {"projectId":"journal-ddaf4","appId":"1:136356893420:web:5162103d01918488e84bc9","storageBucket":"journal-ddaf4.firebasestorage.app","apiKey":"AIzaSyCX8g2c5jzORlgQKz57vahIsO-TP1nGX5E","authDomain":"journal-ddaf4.firebaseapp.com","messagingSenderId":"136356893420","measurementId":"G-25Y1KHZNNP"}
+[debug] [2025-07-31T09:46:30.766Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:30.766Z] Checked if tokens are valid: true, expires at: 1753958078902
+[debug] [2025-07-31T09:46:30.766Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T09:46:31.019Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 200
+[debug] [2025-07-31T09:46:31.019Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 {"projectId":"journal-ddaf4","projectNumber":"136356893420","displayName":"Journal","name":"projects/journal-ddaf4","resources":{"hostingSite":"journal-ddaf4"},"state":"ACTIVE","etag":"1_4e912aa1-1168-4627-80d7-069e6bedf025"}
+[info] i  hosting[journal-ddaf4]: Serving hosting files from: dist {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mdist\u001b[22m"}}
+[info] ✔  hosting[journal-ddaf4]: Local server: http://localhost:5002 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5002\u001b[22m\u001b[24m"}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:39 +0000] "GET / HTTP/1.1" 200 428 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:39 +0000] \"GET / HTTP/1.1\" 200 428 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:39 +0000] "GET /assets/index-BvfBSJJC.css HTTP/1.1" 200 - "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:39 +0000] \"GET /assets/index-BvfBSJJC.css HTTP/1.1\" 200 - \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:39 +0000] "GET /assets/index-yfmOrx5b.js HTTP/1.1" 200 - "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:39 +0000] \"GET /assets/index-yfmOrx5b.js HTTP/1.1\" 200 - \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:39 +0000] "GET /service-worker.js HTTP/1.1" 200 428 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:39 +0000] \"GET /service-worker.js HTTP/1.1\" 200 428 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:39 +0000] "GET /favicon.ico HTTP/1.1" 200 - "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:39 +0000] \"GET /favicon.ico HTTP/1.1\" 200 - \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:46:45 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:46:45 +0000] \"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1\" 404 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:47:13 +0000] "GET /service-worker.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:47:13 +0000] \"GET /service-worker.js HTTP/1.1\" 304 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:47:13 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:47:13 +0000] \"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1\" 404 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:47:13 +0000] "GET /assets/index-BvfBSJJC.css HTTP/1.1" 200 - "http://localhost:5002/service-worker.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:47:13 +0000] \"GET /assets/index-BvfBSJJC.css HTTP/1.1\" 200 - \"http://localhost:5002/service-worker.js\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:09:47:13 +0000] "GET /assets/index-yfmOrx5b.js HTTP/1.1" 200 - "http://localhost:5002/service-worker.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:09:47:13 +0000] \"GET /assets/index-yfmOrx5b.js HTTP/1.1\" 200 - \"http://localhost:5002/service-worker.js\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[debug] [2025-07-31T12:47:44.141Z] ----------------------------------------------------------------------
+[debug] [2025-07-31T12:47:44.147Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve
+[debug] [2025-07-31T12:47:44.148Z] CLI Version:   14.11.1
+[debug] [2025-07-31T12:47:44.148Z] Platform:      darwin
+[debug] [2025-07-31T12:47:44.148Z] Node Version:  v22.16.0
+[debug] [2025-07-31T12:47:44.149Z] Time:          Thu Jul 31 2025 13:47:44 GMT+0100 (Western European Summer Time)
+[debug] [2025-07-31T12:47:44.149Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-31T12:47:44.153Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-07-31T12:47:44.947Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-31T12:47:44.947Z] > authorizing via signed-in user (joostspruijt@hotmail.com)
+[debug] [2025-07-31T12:47:44.947Z] [iam] checking project journal-ddaf4 for permissions ["firebase.projects.get"]
+[debug] [2025-07-31T12:47:44.948Z] Checked if tokens are valid: false, expires at: 1753958078902
+[debug] [2025-07-31T12:47:44.948Z] Checked if tokens are valid: false, expires at: 1753958078902
+[debug] [2025-07-31T12:47:44.948Z] > refreshing access token with scopes: []
+[debug] [2025-07-31T12:47:44.949Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-07-31T12:47:44.950Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-31T12:47:45.197Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-07-31T12:47:45.198Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-07-31T12:47:45.328Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions [none]
+[debug] [2025-07-31T12:47:45.328Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions x-goog-quota-user=projects/journal-ddaf4
+[debug] [2025-07-31T12:47:45.328Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T12:47:45.342Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-07-31T12:47:45.342Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-07-31T12:47:45.903Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions 200
+[debug] [2025-07-31T12:47:45.903Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T12:47:45.904Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:45.904Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:45.904Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T12:47:46.122Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 200
+[debug] [2025-07-31T12:47:46.122Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 {"projectNumber":"136356893420","projectId":"journal-ddaf4","lifecycleState":"ACTIVE","name":"Journal","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-07-23T07:51:24.776618Z"}
+[info] 
+[info] === Serving from '/Users/joost/tasks'...
+[info] 
+[debug] [2025-07-31T12:47:46.125Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:46.125Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:46.126Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 
+[debug] [2025-07-31T12:47:46.864Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 200
+[debug] [2025-07-31T12:47:46.864Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites {"sites":[{"name":"projects/journal-ddaf4/sites/journal-ddaf4","defaultUrl":"https://journal-ddaf4.web.app","appId":"1:136356893420:web:5162103d01918488e84bc9","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-31T12:47:46.864Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:46.864Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:46.865Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config [none]
+[debug] [2025-07-31T12:47:47.725Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config 200
+[debug] [2025-07-31T12:47:47.725Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config {"projectId":"journal-ddaf4","appId":"1:136356893420:web:5162103d01918488e84bc9","storageBucket":"journal-ddaf4.firebasestorage.app","apiKey":"AIzaSyCX8g2c5jzORlgQKz57vahIsO-TP1nGX5E","authDomain":"journal-ddaf4.firebaseapp.com","messagingSenderId":"136356893420","measurementId":"G-25Y1KHZNNP"}
+[debug] [2025-07-31T12:47:47.746Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:47.746Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T12:47:47.747Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T12:47:48.098Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 200
+[debug] [2025-07-31T12:47:48.098Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 {"projectId":"journal-ddaf4","projectNumber":"136356893420","displayName":"Journal","name":"projects/journal-ddaf4","resources":{"hostingSite":"journal-ddaf4"},"state":"ACTIVE","etag":"1_4e912aa1-1168-4627-80d7-069e6bedf025"}
+[debug] [2025-07-31T12:47:48.100Z] Specified "public" directory "dist" does not exist; Deploy to Hosting site "journal-ddaf4" may fail or be empty.
+[info] i  hosting[journal-ddaf4]: Serving hosting files from: dist {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mdist\u001b[22m"}}
+[info] ✔  hosting[journal-ddaf4]: Local server: http://localhost:5003 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5003\u001b[22m\u001b[24m"}}
+[info] i  hosting: ::1 - - [31/Jul/2025:12:47:53 +0000] "GET / HTTP/1.1" 404 139 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:12:47:53 +0000] \"GET / HTTP/1.1\" 404 139 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:12:47:57 +0000] "GET / HTTP/1.1" 404 139 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:12:47:57 +0000] \"GET / HTTP/1.1\" 404 139 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:12:48:07 +0000] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 187 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:12:48:07 +0000] \"GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1\" 404 187 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[debug] [2025-07-31T13:09:17.632Z] ----------------------------------------------------------------------
+[debug] [2025-07-31T13:09:17.641Z] Command:       /usr/local/bin/node /usr/local/bin/firebase serve
+[debug] [2025-07-31T13:09:17.642Z] CLI Version:   14.11.1
+[debug] [2025-07-31T13:09:17.642Z] Platform:      darwin
+[debug] [2025-07-31T13:09:17.642Z] Node Version:  v22.16.0
+[debug] [2025-07-31T13:09:17.643Z] Time:          Thu Jul 31 2025 14:09:17 GMT+0100 (Western European Summer Time)
+[debug] [2025-07-31T13:09:17.643Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-31T13:09:18.023Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-31T13:09:18.024Z] > authorizing via signed-in user (joostspruijt@hotmail.com)
+[debug] [2025-07-31T13:09:18.024Z] [iam] checking project journal-ddaf4 for permissions ["firebase.projects.get"]
+[debug] [2025-07-31T13:09:18.025Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:18.025Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:18.027Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions [none]
+[debug] [2025-07-31T13:09:18.027Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions x-goog-quota-user=projects/journal-ddaf4
+[debug] [2025-07-31T13:09:18.027Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T13:09:18.956Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions 200
+[debug] [2025-07-31T13:09:18.956Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-31T13:09:18.957Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:18.958Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:18.958Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T13:09:19.183Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 200
+[debug] [2025-07-31T13:09:19.183Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/journal-ddaf4 {"projectNumber":"136356893420","projectId":"journal-ddaf4","lifecycleState":"ACTIVE","name":"Journal","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-07-23T07:51:24.776618Z"}
+[info] 
+[info] === Serving from '/Users/joost/tasks'...
+[info] 
+[debug] [2025-07-31T13:09:19.189Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:19.189Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:19.189Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 
+[debug] [2025-07-31T13:09:20.172Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites 200
+[debug] [2025-07-31T13:09:20.173Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/journal-ddaf4/sites {"sites":[{"name":"projects/journal-ddaf4/sites/journal-ddaf4","defaultUrl":"https://journal-ddaf4.web.app","appId":"1:136356893420:web:5162103d01918488e84bc9","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-31T13:09:20.173Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:20.173Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:20.173Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config [none]
+[debug] [2025-07-31T13:09:21.007Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config 200
+[debug] [2025-07-31T13:09:21.007Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4/webApps/1:136356893420:web:5162103d01918488e84bc9/config {"projectId":"journal-ddaf4","appId":"1:136356893420:web:5162103d01918488e84bc9","storageBucket":"journal-ddaf4.firebasestorage.app","apiKey":"AIzaSyCX8g2c5jzORlgQKz57vahIsO-TP1nGX5E","authDomain":"journal-ddaf4.firebaseapp.com","messagingSenderId":"136356893420","measurementId":"G-25Y1KHZNNP"}
+[debug] [2025-07-31T13:09:21.027Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:21.028Z] Checked if tokens are valid: true, expires at: 1753969664198
+[debug] [2025-07-31T13:09:21.028Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 [none]
+[debug] [2025-07-31T13:09:21.404Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 200
+[debug] [2025-07-31T13:09:21.404Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/journal-ddaf4 {"projectId":"journal-ddaf4","projectNumber":"136356893420","displayName":"Journal","name":"projects/journal-ddaf4","resources":{"hostingSite":"journal-ddaf4"},"state":"ACTIVE","etag":"1_4e912aa1-1168-4627-80d7-069e6bedf025"}
+[info] i  hosting[journal-ddaf4]: Serving hosting files from: dist {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mdist\u001b[22m"}}
+[info] ✔  hosting[journal-ddaf4]: Local server: http://localhost:5004 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5004\u001b[22m\u001b[24m"}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:48 +0000] "GET / HTTP/1.1" 200 478 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:48 +0000] \"GET / HTTP/1.1\" 200 478 \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:48 +0000] "GET /assets/index-BvfBSJJC.css HTTP/1.1" 200 - "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:48 +0000] \"GET /assets/index-BvfBSJJC.css HTTP/1.1\" 200 - \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:49 +0000] "GET /assets/index-CWo7g1-V.js HTTP/1.1" 200 - "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:49 +0000] \"GET /assets/index-CWo7g1-V.js HTTP/1.1\" 200 - \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:49 +0000] "GET /assets/workbox-window.prod.es5-B9K5rw8f.js HTTP/1.1" 200 - "http://localhost:5004/assets/index-CWo7g1-V.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:49 +0000] \"GET /assets/workbox-window.prod.es5-B9K5rw8f.js HTTP/1.1\" 200 - \"http://localhost:5004/assets/index-CWo7g1-V.js\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:49 +0000] "GET /favicon.ico HTTP/1.1" 200 - "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:49 +0000] \"GET /favicon.ico HTTP/1.1\" 200 - \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:49 +0000] "GET /manifest.webmanifest HTTP/1.1" 200 351 "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:49 +0000] \"GET /manifest.webmanifest HTTP/1.1\" 200 351 \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:49 +0000] "GET /sw.js HTTP/1.1" 200 - "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:49 +0000] \"GET /sw.js HTTP/1.1\" 200 - \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:50 +0000] "GET /workbox-5ffe50d4.js HTTP/1.1" 200 - "http://localhost:5004/sw.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:50 +0000] \"GET /workbox-5ffe50d4.js HTTP/1.1\" 200 - \"http://localhost:5004/sw.js\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:50 +0000] "GET /img/icons/android-chrome-192x192.png HTTP/1.1" 200 9416 "http://localhost:5004/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:50 +0000] \"GET /img/icons/android-chrome-192x192.png HTTP/1.1\" 200 9416 \"http://localhost:5004/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [31/Jul/2025:13:09:50 +0000] "GET /404.html HTTP/1.1" 404 - "http://localhost:5004/sw.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [31/Jul/2025:13:09:50 +0000] \"GET /404.html HTTP/1.1\" 404 - \"http://localhost:5004/sw.js\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\""}}
