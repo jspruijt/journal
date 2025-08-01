@@ -1,4 +1,6 @@
 import { defineStore } from "pinia";
+import { onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { db } from "../firebase"; // Importeer de Firestore-instantie
 import {
   collection,
@@ -7,7 +9,11 @@ import {
   updateDoc,
   doc,
   deleteDoc,
+  query,
+  where
 } from "firebase/firestore";
+
+const auth = getAuth();
 
 export const useTaskStore = defineStore("tasks", {
   state: () => ({
@@ -15,24 +21,17 @@ export const useTaskStore = defineStore("tasks", {
   }),
   actions: {
     async loadTasks() {
-      try {
-        this.tasks = [];
-        const querySnapshot = await getDocs(collection(db, "tasks"));
-        querySnapshot.forEach((doc) => {
-          this.tasks.push({ id: doc.id, ...doc.data() });
-        });
-      } catch (error) {
-        console.error("Fout bij het laden van taken:", error);
+      const user = auth.currentUser; // Zorg dat auth is geïmporteerd
+      if (user) {
+        const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        this.tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       }
     },
     async addTask(task) {
-      try {
-        const docRef = await addDoc(collection(db, "tasks"), task);
-        this.tasks.push({ id: docRef.id, ...task });
-      } catch (error) {
-        console.error("Fout bij het toevoegen van een taak:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
-      }
+      task.userId = auth.currentUser.uid; // Voeg userId toe
+      const docRef = await addDoc(collection(db, 'tasks'), task);
+      this.tasks.push({ id: docRef.id, ...task });
     },
     async updateTask(taskId, updatedTask) {
       try {

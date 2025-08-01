@@ -19,12 +19,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { onMounted, computed } from 'vue'; // Importeer computed
+import { onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { useTaskStore } from './stores/tasks';
 import { useRouter } from 'vue-router';
 
 const taskStore = useTaskStore();
 const router = useRouter();
+const auth = getAuth();
+
+onMounted(() => {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      await taskStore.loadTasks();
+      router.push('/');
+    } else {
+      taskStore.tasks = [];
+      router.push('/login');
+    }
+  });
+});
+
 const unplannedTasksCount = computed(() => {
   return taskStore.tasks.filter((task) => {
     const hasNoDates = !task.dates || task.dates.length === 0;

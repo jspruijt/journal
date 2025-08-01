@@ -8,6 +8,7 @@ import Dashboard from "./views/Dashboard.vue";
 
 const routes = [
   { path: "/", component: Home },
+  { path: "/login", component: () => import('./components/Login.vue') },
   { path: "/unplanned-tasks", component: UnplannedTasks },
   { path: "/add-task", component: AddTask },
   { path: "/edit-task/:id", component: EditTask },
