@@ -58,13 +58,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import p5 from 'p5';
-import { db } from '../firebase'; // Importeer Firestore
-import { collection, getDocs } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const diaryEntries = ref([]);
-const isLoading = ref(true); // Nieuwe state voor laadinicator
+const isLoading = ref(true);
 
 onMounted(async () => {
   await loadEntries();
@@ -74,11 +74,30 @@ onMounted(async () => {
 const loadEntries = async () => {
   isLoading.value = true;
   try {
-    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
-    diaryEntries.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Wacht tot Firebase Auth status bekend is
+    let user = auth.currentUser;
+    if (!user) {
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(u => {
+          user = u;
+          unsubscribe();
+          resolve();
+        });
+      });
+    }
+    if (user) {
+      const q = query(
+        collection(db, 'diaryEntries'),
+        where('userId', '==', user.uid)
+      );
+      const querySnapshot = await getDocs(q);
+      diaryEntries.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } else {
+      diaryEntries.value = [];
+    }
   } catch (error) {
     console.error('Fout bij het laden van dagboekvermeldingen:', error);
-    diaryEntries.value = []; // Fallback naar lege array bij fout
+    diaryEntries.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -86,7 +105,7 @@ const loadEntries = async () => {
 
 // Grafieken initialiseren met p5.js
 const initCharts = () => {
-  if (isLoading.value) return; // Voorkom initialisatie tijdens laden
+  if (isLoading.value) return;
   const weekData = getMoodData('week');
   new p5((sketch) => {
     sketch.setup = () => {

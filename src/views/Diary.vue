@@ -64,7 +64,7 @@
           </li>
         </ul>
       </div>
-      <button type="submit" class="save-button">Opslaan</button>
+      <button type="submit" class="save-button" :disabled="isLoading">Opslaan</button>
     </form>
     <div v-if="savedMessage" class="saved-message">{{ savedMessage }}</div>
   </div>
@@ -73,8 +73,16 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db } from '../firebase'; // Importeer Firestore
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc
+} from 'firebase/firestore';
 
 const route = useRoute();
 const router = useRouter();
@@ -90,7 +98,7 @@ const entry = ref({
 });
 const newMotto = ref('');
 const savedMessage = ref('');
-const isLoading = ref(false); // Nieuwe state voor laadinicator
+const isLoading = ref(false);
 
 onMounted(() => {
   loadEntry();
@@ -104,14 +112,21 @@ watch(() => route.params.date, (newDate) => {
 const loadEntry = async () => {
   isLoading.value = true;
   try {
-    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
-    const diaryEntries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const existingEntry = diaryEntries.find((e) => e.date === selectedDate.value);
-    if (existingEntry) {
-      entry.value = { ...existingEntry };
-      if (!entry.value.neverForget) {
-        entry.value.neverForget = [];
-      }
+    const user = auth.currentUser;
+    if (!user) {
+      entry.value = { date: selectedDate.value, content: '', limitingThoughts: '', focusThoughts: '', mood: '', tags: '', neverForget: [] };
+      return;
+    }
+    const q = query(
+      collection(db, 'diaryEntries'),
+      where('userId', '==', user.uid),
+      where('date', '==', selectedDate.value)
+    );
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const docData = querySnapshot.docs[0].data();
+      entry.value = { ...docData, id: querySnapshot.docs[0].id };
+      if (!entry.value.neverForget) entry.value.neverForget = [];
     } else {
       entry.value = { date: selectedDate.value, content: '', limitingThoughts: '', focusThoughts: '', mood: '', tags: '', neverForget: [] };
     }
@@ -123,18 +138,23 @@ const loadEntry = async () => {
 };
 
 const saveEntry = async () => {
-  if (isLoading.value) return; // Voorkom dubbele submits
+  if (isLoading.value) return;
   isLoading.value = true;
   try {
-    const newEntry = { ...entry.value, date: selectedDate.value };
+    const user = auth.currentUser;
+    if (!user) throw new Error('Niet ingelogd');
+    const newEntry = { ...entry.value, date: selectedDate.value, userId: user.uid };
     newEntry.neverForget = newEntry.neverForget.filter(item => item && item.trim());
 
-    const querySnapshot = await getDocs(collection(db, 'diaryEntries'));
-    const diaryEntries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const entryIndex = diaryEntries.findIndex((e) => e.date === selectedDate.value);
+    const q = query(
+      collection(db, 'diaryEntries'),
+      where('userId', '==', user.uid),
+      where('date', '==', selectedDate.value)
+    );
+    const querySnapshot = await getDocs(q);
 
-    if (entryIndex > -1) {
-      const existingDoc = diaryEntries[entryIndex];
+    if (!querySnapshot.empty) {
+      const existingDoc = querySnapshot.docs[0];
       await updateDoc(doc(db, 'diaryEntries', existingDoc.id), newEntry);
     } else {
       await addDoc(collection(db, 'diaryEntries'), newEntry);
@@ -219,8 +239,13 @@ textarea {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
-  opacity: v-bind(isLoading ? '0.6' : '1'); /* Uitschakelen visueel */
-  pointer-events: v-bind(isLoading ? 'none' : 'auto'); /* Uitschakelen interactie */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .save-button:hover {
@@ -259,8 +284,13 @@ textarea {
   justify-content: center;
   transition: color 0.2s, transform 0.1s;
   background-color: transparent;
-  opacity: v-bind(isLoading ? '0.6' : '1'); /* Uitschakelen visueel */
-  pointer-events: v-bind(isLoading ? 'none' : 'auto'); /* Uitschakelen interactie */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .action-button:hover {

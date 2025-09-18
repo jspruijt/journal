@@ -1,7 +1,9 @@
 import { defineStore } from "pinia";
-import { db } from "../firebase"; // Importeer de Firestore-instantie
+import { db, auth } from "../firebase"; // Importeer ook auth!
 import {
   collection,
+  query,
+  where,
   getDocs,
   addDoc,
   updateDoc,
@@ -17,7 +19,10 @@ export const useTaskStore = defineStore("tasks", {
     async loadTasks() {
       try {
         this.tasks = [];
-        const querySnapshot = await getDocs(collection(db, "tasks"));
+        const user = auth.currentUser;
+        if (!user) return; // Geen taken ophalen als niet ingelogd
+        const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           this.tasks.push({ id: doc.id, ...doc.data() });
         });
@@ -27,8 +32,13 @@ export const useTaskStore = defineStore("tasks", {
     },
     async addTask(task) {
       try {
-        const docRef = await addDoc(collection(db, "tasks"), task);
-        this.tasks.push({ id: docRef.id, ...task });
+        const user = auth.currentUser;
+        if (!user) throw new Error("Niet ingelogd");
+        const docRef = await addDoc(collection(db, "tasks"), {
+          ...task,
+          userId: user.uid, // Voeg userId toe!
+        });
+        this.tasks.push({ id: docRef.id, ...task, userId: user.uid });
       } catch (error) {
         console.error("Fout bij het toevoegen van een taak:", error);
         await this.loadTasks(); // Herlaad taken bij fout

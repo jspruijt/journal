@@ -98,8 +98,8 @@
 import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { useTaskStore } from "../stores/tasks";
 import { useRouter } from "vue-router";
-import { db } from "../firebase"; // Importeer Firestore
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const taskStore = useTaskStore();
 const router = useRouter();
@@ -113,18 +113,21 @@ const lastDragTop = ref(0);
 const initialDragOffsetY = ref(0);
 const dragEdge = ref(null);
 const originalHeight = ref(0);
-const diaryEntries = ref([]); // Nieuwe ref voor dagboekentries
+const diaryEntries = ref([]); // Dagboekentries van de ingelogde gebruiker
 
 const taskCache = ref(new Map());
 
-// Laad taken asynchroon
+// Laad taken en dagboekentries asynchroon
 onMounted(async () => {
   await taskStore.loadTasks();
+
+  // Weekberekening
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   const monday = new Date(now.setDate(diff));
   currentWeekStart.value = monday.toISOString().split("T")[0];
+
   nextTick(() => {
     hourLinesRef.value.forEach((container, index) => {
       if (container) {
@@ -134,15 +137,34 @@ onMounted(async () => {
           const hour = hourLine.getAttribute("data-hour");
           hourPositions.value[index][hour] = hourLine.offsetTop;
         });
-        console.log(`Hour positions for day ${index}:`, hourPositions.value[index]);
       }
     });
   });
 
-  // Laad dagboekvermeldingen uit Firestore
+  // Laad alleen dagboekentries van de ingelogde gebruiker
   try {
-    const diarySnapshot = await getDocs(collection(db, "diaryEntries"));
-    diaryEntries.value = diarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Wacht tot Firebase Auth status bekend is
+    let user = auth.currentUser;
+    if (!user) {
+      // Probeer te wachten op auth state change
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(u => {
+          user = u;
+          unsubscribe();
+          resolve();
+        });
+      });
+    }
+    if (user) {
+      const q = query(
+        collection(db, "diaryEntries"),
+        where("userId", "==", user.uid)
+      );
+      const diarySnapshot = await getDocs(q);
+      diaryEntries.value = diarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } else {
+      diaryEntries.value = [];
+    }
   } catch (e) {
     console.error("Fout bij het laden van dagboekvermeldingen:", e);
     diaryEntries.value = [];
@@ -154,7 +176,6 @@ watch(() => [taskStore.tasks, currentWeekStart.value], () => {
 }, { deep: true });
 
 const weekDays = computed(() => {
-  console.log("Recalculating weekDays with start:", currentWeekStart.value);
   const days = [];
   const start = new Date(currentWeekStart.value);
   for (let i = 0; i < 7; i++) {
@@ -205,23 +226,15 @@ const formatShortDate = (date) => {
 };
 
 const previousWeek = () => {
-  console.log("Previous week clicked");
   const current = new Date(currentWeekStart.value);
   current.setDate(current.getDate() - 7);
   currentWeekStart.value = current.toISOString().split("T")[0];
-  nextTick(() => {
-    console.log("New week start:", currentWeekStart.value);
-  });
 };
 
 const nextWeek = () => {
-  console.log("Next week clicked");
   const current = new Date(currentWeekStart.value);
   current.setDate(current.getDate() + 7);
   currentWeekStart.value = current.toISOString().split("T")[0];
-  nextTick(() => {
-    console.log("New week start:", currentWeekStart.value);
-  });
 };
 
 const hourLines = computed(() => {
@@ -265,14 +278,12 @@ const getTaskTimeKey = (task, date) => {
 const getTaskPosition = (task, date) => {
   const schedule = getTaskSchedule(task, date);
   if (!schedule || !schedule.startTime || !schedule.endTime) {
-    console.warn(`Invalid task data for ${task.name} on ${date}`);
     return { top: "0em", height: "1.5em", background: "rgba(255, 0, 0, 0.2)" };
   }
 
   const dayIndex = weekDays.value.findIndex((day) => day.date === date);
   const positions = hourPositions.value[dayIndex] || {};
   if (Object.keys(positions).length === 0) {
-    console.warn(`No hour positions found for day ${date}, using fallback`);
     return { top: "0em", height: "1.5em", background: "rgba(255, 0, 0, 0.2)" };
   }
 
@@ -284,11 +295,6 @@ const getTaskPosition = (task, date) => {
 
   const startHourTop = positions[startHourStr] || 0;
   const endHourTop = positions[endHourStr] || 0;
-
-  if (startHourTop === undefined || endHourTop === undefined) {
-    console.warn(`Missing hour positions for startHour: ${startHourStr}, endHour: ${endHourStr}`);
-    return { top: "0em", height: "1.5em", background: "rgba(255, 0, 0, 0.2)" };
-  }
 
   const hourHeightPx = positions["01"] - positions["00"] || 32;
   const minuteOffsetPx = (startMinutes / 60) * hourHeightPx;
@@ -302,8 +308,6 @@ const getTaskPosition = (task, date) => {
   const baseFontSize = 16;
   const topEm = topPx / baseFontSize;
   const heightEm = heightPx / baseFontSize;
-
-  console.log(`Task "${task.name}" - Start: ${startHours}:${startMinutes}, Top: ${topEm}em, Height: ${heightEm}em`);
 
   return {
     top: `${topEm}em`,
@@ -456,17 +460,14 @@ const onDrop = async (event, date) => {
 const toggleTaskCompletion = async (task, date) => {
   const taskId = task.id;
   await taskStore.toggleTaskInstanceCompletion(taskId, date);
-  taskCache.value.clear(); // Wis cache na succesvolle update
-  await nextTick(); // Forceer UI-update
+  taskCache.value.clear();
+  await nextTick();
 };
 
 const deleteTaskInstance = async (task, date) => {
-  console.log("deleteTaskInstance called for task:", task, "on date:", date);
   const taskId = task.id;
-  console.log("Task ID:", taskId);
-  await taskStore.deleteTaskInstance(taskId, date); // Gebruik de nieuwe methode
+  await taskStore.deleteTaskInstance(taskId, date);
   taskCache.value.clear();
-  console.log("Cache cleared, forcing UI update...");
   await nextTick();
 };
 </script>

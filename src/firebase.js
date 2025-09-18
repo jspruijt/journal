@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getAuth } from 'firebase/auth'; // Voor auth
 import { getFirestore, initializeFirestore, persistentLocalCache } from "firebase/firestore"; // Voeg initializeFirestore en persistentLocalCache toe
 
 // Your web app's Firebase configuration
@@ -16,11 +17,13 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const analytics = getAnalytics(app);
+
 
 // Initialiseer Firestore met offline persistence ingeschakeld
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabSynchronization: true }) // Gebruik persistentLocalCache voor offline persistence
 });
 
-export { db, analytics };
+export { db, auth, analytics };

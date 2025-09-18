@@ -1,27 +1,44 @@
 <template>
   <div id="app">
-    <router-view />
-    <div class="floating-action-bar">
-      <button class="action-button add-task" @click="$router.push('/add-task')" title="Taak toevoegen">
-        <span>+</span>
-      </button>
-      <button class="action-button view-unplanned" @click="$router.push('/unplanned-tasks')" title="Ongeplande taken">
-        <span>📋</span><span class="counter">{{ unplannedTasksCount }}</span>
-      </button>
-      <button class="action-button go-home" @click="$router.push('/')" title="Ga naar homescherm">
-        <span>🏠</span>
-      </button>
-      <button class="action-button go-dashboard" @click="$router.push('/dashboard')" title="Ga naar dashboard">
-        <span>📊</span>
-      </button>
+    <div v-if="!user" class="auth-container">
+      <AuthButtons />
+    </div>
+    <div v-else>
+      <AuthButtons />
+      <router-view />
+      <div class="floating-action-bar">
+        <button class="action-button add-task" @click="$router.push('/add-task')" title="Taak toevoegen">
+          <span>+</span>
+        </button>
+        <button class="action-button view-unplanned" @click="$router.push('/unplanned-tasks')" title="Ongeplande taken">
+          <span>📋</span><span class="counter">{{ unplannedTasksCount }}</span>
+        </button>
+        <button class="action-button go-home" @click="$router.push('/')" title="Ga naar homescherm">
+          <span>🏠</span>
+        </button>
+        <button class="action-button go-dashboard" @click="$router.push('/dashboard')" title="Ga naar dashboard">
+          <span>📊</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useTaskStore } from './stores/tasks';
 import { useRouter } from 'vue-router';
+import AuthButtons from './components/AuthButtons.vue';
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
+const user = ref(null);
+
+onMounted(() => {
+  onAuthStateChanged(auth, (u) => {
+    user.value = u;
+  });
+});
 
 const taskStore = useTaskStore();
 const router = useRouter();
@@ -38,7 +55,14 @@ const unplannedTasksCount = computed(() => {
 #app {
   min-height: 100vh;
   position: relative;
-  padding-bottom: 80px; /* Ruimte voor de floating action bar */
+  padding-bottom: 80px;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
 }
 
 .floating-action-bar {
