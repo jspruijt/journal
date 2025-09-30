@@ -1,10 +1,9 @@
 <template>
-  <div class="edit-goal">
-    <h1>Doel Bewerken</h1>
+  <div class="add-goal">
+    <h1>Doel Toevoegen</h1>
     <div v-if="goalStore.isLoading" class="loading">Laden...</div>
     <div v-else-if="goalStore.error" class="error">{{ goalStore.error }}</div>
-    <div v-else-if="!goal" class="error">Doel niet gevonden</div>
-    <div v-else class="goal-form">
+    <form @submit.prevent="addGoal" class="goal-form">
       <div class="form-group">
         <label for="title">Titel</label>
         <input v-model="goal.title" id="title" type="text" placeholder="Voer de titel van het doel in" required />
@@ -19,44 +18,38 @@
         <input v-model="goal.deadline" id="deadline" type="date" />
       </div>
       <div class="form-actions">
-        <button class="action-button" @click="updateGoal" title="Doel opslaan">
-          <span>✔</span>
-        </button>
-        <button class="action-button cancel" @click="$router.push('/goals')" title="Annuleren">
-          <span>❌</span>
-        </button>
+        <button type="submit" title="Doel toevoegen">Opslaan</button>
+        <button type="button" @click="$router.push('/goals')" title="Annuleren">Annuleren</button>
       </div>
-    </div>
+    </form>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useGoalStore } from '../stores/goals';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 
 const goalStore = useGoalStore();
 const router = useRouter();
-const route = useRoute();
-const goal = ref(null);
-
-onMounted(async () => {
-  await goalStore.loadGoals();
-  const goalId = route.params.id;
-  const foundGoal = goalStore.goals.find(g => g.id === goalId);
-  if (foundGoal) {
-    goal.value = { ...foundGoal, deadline: foundGoal.deadline || '' };
-  } else {
-    goalStore.error = 'Doel niet gevonden';
-  }
+const goal = ref({
+  title: '',
+  description: '',
+  deadline: '',
 });
 
-async function updateGoal() {
-  if (!goal.value.title) {
-    goalStore.error = 'Titel is verplicht';
+async function addGoal() {
+  if (!goal.value.title.trim() || goal.value.title.includes("<!--")) {
+    goalStore.error = 'Titel is verplicht en mag geen ongeldige HTML bevatten (bijv. <!--).';
     return;
   }
-  await goalStore.updateGoal(route.params.id, goal.value);
+  const newGoal = {
+    title: goal.value.title.trim(),
+    description: goal.value.description.trim(),
+    deadline: goal.value.deadline,
+    completed: false,
+  };
+  await goalStore.addGoal(newGoal);
   if (!goalStore.error) {
     router.push('/goals');
   }
@@ -64,10 +57,13 @@ async function updateGoal() {
 </script>
 
 <style scoped>
-.edit-goal {
+.add-goal {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .loading,
@@ -99,9 +95,9 @@ async function updateGoal() {
 
 .form-group input,
 .form-group textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
   font-size: 1em;
 }
 
@@ -111,32 +107,31 @@ async function updateGoal() {
   justify-content: flex-end;
 }
 
-.action-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  background-color: #007bff;
+button[type="submit"] {
+  padding: 10px;
+  background: #007bff;
   color: white;
-  font-size: 1.5em;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.1s;
+  transition: background 0.2s;
 }
 
-.action-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.1);
+button[type="submit"]:hover {
+  background: #0056b3;
 }
 
-.action-button.cancel {
-  background-color: #0056b3;
+button[type="button"] {
+  padding: 10px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.action-button.cancel:hover {
-  background-color: #0056b3;
+button[type="button"]:hover {
+  background: #5a6268;
 }
 </style>

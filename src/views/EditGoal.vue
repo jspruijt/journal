@@ -11,12 +11,7 @@
       </div>
       <div class="form-group">
         <label for="description">Beschrijving</label>
-        <textarea v-model="goal.description" id="description" placeholder="Voer een beschrijving in"
-          rows="5"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="deadline">Deadline</label>
-        <input v-model="goal.deadline" id="deadline" type="date" />
+        <textarea v-model="goal.description" id="description" placeholder="Voer een beschrijving in" rows="5"></textarea>
       </div>
       <div class="form-actions">
         <button class="action-button" @click="updateGoal" title="Doel opslaan">
@@ -45,7 +40,7 @@ onMounted(async () => {
   const goalId = route.params.id;
   const foundGoal = goalStore.goals.find(g => g.id === goalId);
   if (foundGoal) {
-    goal.value = { ...foundGoal, deadline: foundGoal.deadline || '' };
+    goal.value = { ...foundGoal };
   } else {
     goalStore.error = 'Doel niet gevonden';
   }
@@ -70,8 +65,7 @@ async function updateGoal() {
   margin: 0 auto;
 }
 
-.loading,
-.error {
+.loading, .error {
   text-align: center;
   font-size: 1.2em;
   margin-top: 20px;
@@ -133,10 +127,10 @@ async function updateGoal() {
 }
 
 .action-button.cancel {
-  background-color: #0056b3;
+  background-color: #dc3545;
 }
 
 .action-button.cancel:hover {
-  background-color: #0056b3;
+  background-color: #b02a37;
 }
 </style>

@@ -2,46 +2,45 @@
   <div class="dashboard">
     <h1>Dagboek Dashboard</h1>
 
-    <!-- Stemming Overzicht -->
     <div class="mood-overview">
       <h2>Stemming Overzicht</h2>
       <div class="charts">
-        <div class="chart-container" v-if="!isLoading">
+        <div class="chart-container" v-if="!isLoading && !error">
           <h3>Laatste Week</h3>
           <div id="weekMoodChart"></div>
         </div>
-        <div class="chart-container" v-if="!isLoading">
+        <div class="chart-container" v-if="!isLoading && !error">
           <h3>Laatste Maand</h3>
           <div id="monthMoodChart"></div>
         </div>
-        <div class="average-container" v-if="!isLoading">
+        <div class="average-container" v-if="!isLoading && !error">
           <h3>Gemiddeld Overall</h3>
           <p>{{ overallAverage.toFixed(1) }}</p>
         </div>
-        <div v-else class="loading-message">Laden...</div>
+        <div v-if="isLoading" class="loading-message">Laden...</div>
+        <div v-if="error" class="loading-message">{{ error }}</div>
       </div>
     </div>
 
-    <!-- Lijfspreuken Overzicht -->
     <div class="mottos-overview">
       <h2>Lijfspreuken</h2>
-      <ul class="mottos-list" v-if="!isLoading">
+      <ul class="mottos-list" v-if="!isLoading && !error">
         <li v-for="(motto, index) in paginatedMottos" :key="index">
           {{ motto }}
         </li>
       </ul>
-      <div v-else class="loading-message">Laden...</div>
-      <div class="pagination" v-if="!isLoading">
+      <div v-if="isLoading" class="loading-message">Laden...</div>
+      <div v-if="error" class="loading-message">{{ error }}</div>
+      <div class="pagination" v-if="!isLoading && !error">
         <button @click="previousPage" :disabled="currentPage === 1">Vorige</button>
         <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
         <button @click="nextPage" :disabled="currentPage === totalPages">Volgende</button>
       </div>
     </div>
 
-    <!-- Laatste 7 Dagen Overzicht -->
     <div class="last-seven-days">
       <h2>Afgelopen 7 Dagen</h2>
-      <div v-for="day in lastSevenDays" :key="day.date" class="day-entry" v-if="!isLoading">
+      <div v-for="day in lastSevenDays" :key="day.date" class="day-entry" v-if="!isLoading && !error">
         <h3>{{ formatDate(day.date) }}</h3>
         <div v-if="day.entry">
           <p><strong>Inhoud:</strong> {{ day.entry.content || 'Geen inhoud' }}</p>
@@ -50,13 +49,14 @@
         </div>
         <p v-else>Geen gegevens voor deze dag</p>
       </div>
-      <div v-else class="loading-message">Laden...</div>
+      <div v-if="isLoading" class="loading-message">Laden...</div>
+      <div v-if="error" class="loading-message">{{ error }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import p5 from 'p5';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -65,26 +65,27 @@ const currentPage = ref(1);
 const itemsPerPage = 10;
 const diaryEntries = ref([]);
 const isLoading = ref(true);
+const error = ref('');
 
-onMounted(async () => {
-  await loadEntries();
-  initCharts();
-});
+const waitForUser = async () => {
+  let user = auth.currentUser;
+  if (!user) {
+    await new Promise(resolve => {
+      const unsubscribe = auth.onAuthStateChanged(u => {
+        user = u;
+        unsubscribe();
+        resolve();
+      });
+    });
+  }
+  return auth.currentUser;
+};
 
 const loadEntries = async () => {
   isLoading.value = true;
+  error.value = '';
   try {
-    // Wacht tot Firebase Auth status bekend is
-    let user = auth.currentUser;
-    if (!user) {
-      await new Promise(resolve => {
-        const unsubscribe = auth.onAuthStateChanged(u => {
-          user = u;
-          unsubscribe();
-          resolve();
-        });
-      });
-    }
+    const user = await waitForUser();
     if (user) {
       const q = query(
         collection(db, 'diaryEntries'),
@@ -94,18 +95,23 @@ const loadEntries = async () => {
       diaryEntries.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } else {
       diaryEntries.value = [];
+      error.value = 'Niet ingelogd.';
     }
-  } catch (error) {
-    console.error('Fout bij het laden van dagboekvermeldingen:', error);
+  } catch (err) {
+    console.error('Fout bij het laden van dagboekvermeldingen:', err);
     diaryEntries.value = [];
+    error.value = 'Fout bij het laden van dagboekvermeldingen.';
   } finally {
     isLoading.value = false;
   }
 };
 
-// Grafieken initialiseren met p5.js
 const initCharts = () => {
-  if (isLoading.value) return;
+  if (isLoading.value || error.value) return;
+  // Verwijder bestaande canvassen
+  document.getElementById('weekMoodChart')?.replaceChildren();
+  document.getElementById('monthMoodChart')?.replaceChildren();
+
   const weekData = getMoodData('week');
   new p5((sketch) => {
     sketch.setup = () => {
@@ -118,7 +124,7 @@ const initCharts = () => {
       sketch.stroke(0);
       sketch.noFill();
       const maxMood = 5;
-      const barWidth = 300 / weekData.length;
+      const barWidth = 300 / (weekData.length || 1);
       weekData.forEach((mood, index) => {
         const barHeight = (mood / maxMood) * 180;
         sketch.rect(index * barWidth, 200 - barHeight, barWidth - 5, barHeight);
@@ -138,7 +144,7 @@ const initCharts = () => {
       sketch.stroke(0);
       sketch.noFill();
       const maxMood = 5;
-      const barWidth = 300 / monthData.length;
+      const barWidth = 300 / (monthData.length || 1);
       monthData.forEach((mood, index) => {
         const barHeight = (mood / maxMood) * 180;
         sketch.rect(index * barWidth, 200 - barHeight, barWidth - 5, barHeight);
@@ -147,7 +153,15 @@ const initCharts = () => {
   }, 'monthMoodChart');
 };
 
-// Gegevens ophalen voor grafieken
+onMounted(async () => {
+  await loadEntries();
+  initCharts();
+});
+
+watch(diaryEntries, () => {
+  initCharts();
+});
+
 const getMoodData = (period) => {
   const now = new Date();
   const data = [];
@@ -163,13 +177,11 @@ const getMoodData = (period) => {
   return data;
 };
 
-// Gemiddelde stemming berekenen
 const overallAverage = computed(() => {
   const moods = diaryEntries.value.map(entry => parseInt(entry.mood) || 0).filter(mood => !isNaN(mood));
   return moods.length ? moods.reduce((a, b) => a + b, 0) / moods.length : 0;
 });
 
-// Pagineringslogica voor lijfspreuken
 const allMottos = computed(() => {
   return [...new Set(diaryEntries.value.flatMap(entry => entry.neverForget || []))].filter(motto => motto);
 });
@@ -187,7 +199,6 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++;
 };
 
-// Afgelopen 7 dagen (exclusief vandaag)
 const lastSevenDays = computed(() => {
   const now = new Date();
   const days = [];

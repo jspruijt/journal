@@ -4,7 +4,7 @@
       <AuthButtons />
     </div>
     <div v-else>
-      <AuthButtons />
+      <AuthButtons :user="user" />
       <router-view />
       <div class="floating-action-bar">
         <button class="action-button add-task" @click="$router.push('/add-task')" title="Taak toevoegen">
@@ -12,6 +12,9 @@
         </button>
         <button class="action-button view-unplanned" @click="$router.push('/unplanned-tasks')" title="Ongeplande taken">
           <span>📋</span><span class="counter">{{ unplannedTasksCount }}</span>
+        </button>
+        <button class="action-button view-goals" @click="$router.push('/goals')" title="Doelen overzicht">
+          <span>🏅</span><span class="counter">{{ activeGoalsCount }}</span>
         </button>
         <button class="action-button go-home" @click="$router.push('/')" title="Ga naar homescherm">
           <span>🏠</span>
@@ -27,6 +30,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useTaskStore } from './stores/tasks';
+import { useGoalStore } from './stores/goals';
 import { useRouter } from 'vue-router';
 import AuthButtons from './components/AuthButtons.vue';
 import { auth } from './firebase';
@@ -35,19 +39,31 @@ import { onAuthStateChanged } from 'firebase/auth';
 const user = ref(null);
 
 onMounted(() => {
-  onAuthStateChanged(auth, (u) => {
+  const unsubscribe = onAuthStateChanged(auth, async (u) => {
     user.value = u;
+    if (u) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await taskStore.loadTasks();
+      await goalStore.loadGoals();
+    }
+    unsubscribe();
   });
 });
 
 const taskStore = useTaskStore();
+const goalStore = useGoalStore();
 const router = useRouter();
+
 const unplannedTasksCount = computed(() => {
   return taskStore.tasks.filter((task) => {
     const hasNoDates = !task.dates || task.dates.length === 0;
     const hasNoScheduledDates = !task.scheduledDates || task.scheduledDates.length === 0;
     return hasNoDates && hasNoScheduledDates;
   }).length;
+});
+
+const activeGoalsCount = computed(() => {
+  return goalStore.activeGoalsCount;
 });
 </script>
 
@@ -104,7 +120,8 @@ const unplannedTasksCount = computed(() => {
   font-size: 1.8em;
 }
 
-.view-unplanned {
+.view-unplanned,
+.view-goals {
   position: relative;
 }
 

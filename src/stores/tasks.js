@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { db, auth } from "../firebase"; // Importeer ook auth!
+import { db, auth } from "../firebase";
 import {
   collection,
   query,
@@ -11,62 +11,96 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
+// Helper: wacht op geldige gebruiker
+async function waitForUser() {
+  let user = auth.currentUser;
+  if (!user) {
+    await new Promise(resolve => {
+      const unsubscribe = auth.onAuthStateChanged(u => {
+        user = u;
+        unsubscribe();
+        resolve();
+      });
+    });
+  }
+  return auth.currentUser;
+}
+
 export const useTaskStore = defineStore("tasks", {
   state: () => ({
     tasks: [],
+    error: null,
+    isLoading: false,
   }),
   actions: {
     async loadTasks() {
+      this.isLoading = true;
+      this.error = null;
       try {
         this.tasks = [];
-        const user = auth.currentUser;
-        if (!user) return; // Geen taken ophalen als niet ingelogd
+        const user = await waitForUser();
+        if (!user) {
+          this.error = "Niet ingelogd";
+          return;
+        }
         const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          this.tasks.push({ id: doc.id, ...doc.data() });
-        });
+        
+        this.tasks = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        console.log(this.tasks);
       } catch (error) {
-        console.error("Fout bij het laden van taken:", error);
+        this.error = "Fout bij het laden van taken";
+        console.error(this.error, error);
+      } finally {
+        this.isLoading = false;
       }
     },
     async addTask(task) {
+      this.error = null;
       try {
-        const user = auth.currentUser;
+        const user = await waitForUser();
         if (!user) throw new Error("Niet ingelogd");
         const docRef = await addDoc(collection(db, "tasks"), {
           ...task,
-          userId: user.uid, // Voeg userId toe!
+          userId: user.uid,
         });
         this.tasks.push({ id: docRef.id, ...task, userId: user.uid });
       } catch (error) {
-        console.error("Fout bij het toevoegen van een taak:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het toevoegen van een taak";
+        console.error(this.error, error);
+        await this.loadTasks();
       }
     },
     async updateTask(taskId, updatedTask) {
+      this.error = null;
       try {
         if (!taskId || typeof taskId !== "string") {
           throw new Error("Ongeldige taskId: " + taskId);
         }
+        const user = await waitForUser();
+        if (!user) throw new Error("Niet ingelogd");
         const taskDoc = doc(db, "tasks", taskId);
-        await updateDoc(taskDoc, updatedTask);
+        console.log("Updating task:", taskId, updatedTask);
+        await updateDoc(taskDoc, { ...updatedTask, userId: user.uid });
         const taskIndex = this.tasks.findIndex(task => task.id === taskId);
         if (taskIndex !== -1) {
-          this.tasks[taskIndex] = { id: taskId, ...updatedTask };
+          this.tasks[taskIndex] = { id: taskId, ...updatedTask, userId: user.uid };
         }
-        await this.loadTasks(); // Forceer synchronisatie
+        await this.loadTasks();
       } catch (error) {
-        console.error("Fout bij het bijwerken van een taak:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het bijwerken van een taak";
+        console.error(this.error, error);
+        await this.loadTasks();
       }
     },
     async deleteTask(taskId) {
+      this.error = null;
       try {
         if (!taskId || typeof taskId !== "string") {
           throw new Error("Ongeldige taskId voor verwijdering: " + taskId);
         }
-        console.log("Verwijderen van taak met ID:", taskId); // Debug-log
+        const user = await waitForUser();
+        if (!user) throw new Error("Niet ingelogd");
         const taskDoc = doc(db, "tasks", taskId);
         await deleteDoc(taskDoc);
         const taskIndex = this.tasks.findIndex(task => task.id === taskId);
@@ -74,16 +108,17 @@ export const useTaskStore = defineStore("tasks", {
           this.tasks.splice(taskIndex, 1);
         }
       } catch (error) {
-        console.error("Fout bij het verwijderen van een taak:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het verwijderen van een taak";
+        console.error(this.error, error);
+        await this.loadTasks();
       }
     },
     async deleteTaskInstance(taskId, date) {
+      this.error = null;
       try {
         if (!taskId || typeof taskId !== "string") {
           throw new Error("Ongeldige taskId voor instantie-verwijdering: " + taskId);
         }
-        console.log("Verwijderen van taakinstantie met ID:", taskId, "op datum:", date);
         const taskIndex = this.tasks.findIndex(task => task.id === taskId);
         if (taskIndex === -1) {
           throw new Error("Taak niet gevonden met ID: " + taskId);
@@ -94,7 +129,7 @@ export const useTaskStore = defineStore("tasks", {
         if (task.scheduledDates) {
           updatedTask.scheduledDates = task.scheduledDates.filter(d => d.date !== date);
           if (updatedTask.scheduledDates.length === 0) {
-            await this.deleteTask(taskId); // Verwijder de hele taak als geen schedules meer
+            await this.deleteTask(taskId);
           } else {
             await this.updateTask(taskId, updatedTask);
           }
@@ -102,27 +137,27 @@ export const useTaskStore = defineStore("tasks", {
           const updatedTimesByDate = { ...task.timesByDate };
           delete updatedTimesByDate[date];
           if (Object.keys(updatedTimesByDate).length === 0) {
-            await this.deleteTask(taskId); // Verwijder de hele taak als geen times meer
+            await this.deleteTask(taskId);
           } else {
             await this.updateTask(taskId, { timesByDate: updatedTimesByDate });
           }
         } else if (task.dates) {
           updatedTask.dates = task.dates.filter(d => d !== date);
           if (updatedTask.dates.length === 0) {
-            await this.deleteTask(taskId); // Verwijder de hele taak als geen dates meer
+            await this.deleteTask(taskId);
           } else {
             await this.updateTask(taskId, updatedTask);
           }
-        } else {
-          console.warn("Geen verwijderbare instanties gevonden voor taak:", task);
         }
       } catch (error) {
-        console.error("Fout bij het verwijderen van taakinstantie:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het verwijderen van taakinstantie";
+        console.error(this.error, error);
+        await this.loadTasks();
         throw error;
       }
     },
     async toggleTaskCompletion(taskId) {
+      this.error = null;
       try {
         const taskIndex = this.tasks.findIndex(task => task.id === taskId);
         if (taskIndex !== -1) {
@@ -131,11 +166,13 @@ export const useTaskStore = defineStore("tasks", {
           await this.updateTask(taskId, updatedTask);
         }
       } catch (error) {
-        console.error("Fout bij het togglen van taak voltooiing:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het togglen van taak voltooiing";
+        console.error(this.error, error);
+        await this.loadTasks();
       }
     },
     async toggleTaskInstanceCompletion(taskId, date) {
+      this.error = null;
       try {
         const taskIndex = this.tasks.findIndex(task => task.id === taskId);
         if (taskIndex !== -1) {
@@ -160,8 +197,9 @@ export const useTaskStore = defineStore("tasks", {
           }
         }
       } catch (error) {
-        console.error("Fout bij het togglen van taakinstantie voltooiing:", error);
-        await this.loadTasks(); // Herlaad taken bij fout
+        this.error = "Fout bij het togglen van taakinstantie voltooiing";
+        console.error(this.error, error);
+        await this.loadTasks();
       }
     },
   },

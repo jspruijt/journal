@@ -1,95 +1,34 @@
 <template>
   <div class="home">
     <h1>Weekoverzicht</h1>
-    <div class="week-navigation">
-      <button @click="previousWeek">Vorige week</button>
-      <span>{{ formatWeekRange(currentWeekStart) }}</span>
-      <button @click="nextWeek">Volgende week</button>
-    </div>
+    <WeekNavigation
+      :currentWeekStart="currentWeekStart"
+      :formatWeekRange="formatWeekRange"
+      :previousWeek="previousWeek"
+      :nextWeek="nextWeek"
+    />
     <div class="week">
-      <div v-for="day in weekDays" :key="day.date" class="day">
-        <div class="day-header">
-          <h3>{{ formatShortDate(day.date) }}</h3>
-          <div class="day-actions">
-            <button
-              class="icon-button"
-              :class="{ 'has-diary': hasDiaryEntry(day.date) }"
-              @click="$router.push(`/diary/${day.date}`)"
-              aria-label="Dagboek voor deze dag"
-            >
-              📓
-            </button>
-          </div>
-        </div>
-        <div
-          class="hour-lines"
-          :key="day.date"
-          ref="hourLinesRef"
-          @dragover.prevent="onDragOver($event, day.date)"
-          @drop="onDrop($event, day.date)"
-        >
-          <div v-for="hour in hourLines" :key="hour" class="hour-line" :data-hour="hour">
-            {{ hour }}:00
-          </div>
-          <div
-            v-for="task in tasksForDay(day.date)"
-            :key="`${task.id}-${day.date}-${getTaskTimeKey(task, day.date)}`"
-            class="task"
-            :style="getTaskPosition(task, day.date)"
-          >
-            <div
-              class="task-edge top-edge"
-              :draggable="true"
-              @dragstart="onDragStart($event, task, day.date, 'top')"
-            ></div>
-            <div
-              class="task-content"
-              :draggable="true"
-              @dragstart="onDragStart($event, task, day.date, 'middle')"
-            >
-              <div class="task-info">
-                <input
-                  type="checkbox"
-                  :checked="getTaskSchedule(task, day.date)?.completed ?? false"
-                  @change="toggleTaskCompletion(task, day.date)"
-                  :id="'task-' + task.id + '-' + day.date"
-                />
-                <label
-                  :for="'task-' + task.id + '-' + day.date"
-                  class="task-name"
-                  @mouseover="showTooltip($event, sanitizeText(task.name || 'Onbekende taak'))"
-                >
-                  {{ sanitizeText(task.name || "Onbekende taak") }}
-                  <span v-if="getTaskSchedule(task, day.date)">
-                    {{ getTaskSchedule(task, day.date).startTime }} - {{ getTaskSchedule(task, day.date).endTime }}
-                  </span>
-                </label>
-              </div>
-              <div class="task-actions">
-                <button
-                  class="icon-button"
-                  @click="$router.push(`/edit-task/${task.id}`)"
-                  aria-label="Bewerk taak"
-                >
-                  ✏️
-                </button>
-                <button
-                  class="icon-button"
-                  @click="deleteTaskInstance(task, day.date)"
-                  aria-label="Verwijder instantie"
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-            <div
-              class="task-edge bottom-edge"
-              :draggable="true"
-              @dragstart="onDragStart($event, task, day.date, 'bottom')"
-            ></div>
-          </div>
-        </div>
-      </div>
+      <DayColumn
+        v-for="(day, index) in weekDays"
+        :key="day.date"
+        :day="day"
+        :hourLines="hourLines"
+        :hourLinesRef="el => hourLinesRef[index] = el"
+        :tasksForDay="tasksForDay"
+        :getTaskPosition="getTaskPosition"
+        :getTaskSchedule="getTaskSchedule"
+        :getTaskTimeKey="getTaskTimeKey"
+        :showTooltip="showTooltip"
+        :formatShortDate="formatShortDate"
+        :hasDiaryEntry="hasDiaryEntry"
+        @openDiary="openDiary"
+        @dragOver="onDragOver"
+        @drop="onDrop"
+        @dragStart="onDragStart"
+        @toggleCompletion="toggleTaskCompletion"
+        @deleteInstance="deleteTaskInstance"
+        @editTask="editTask"
+      />
     </div>
   </div>
 </template>
@@ -100,11 +39,13 @@ import { useTaskStore } from "../stores/tasks";
 import { useRouter } from "vue-router";
 import { db, auth } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import WeekNavigation from "../components/WeekNavigation.vue";
+import DayColumn from "../components/DayColumn.vue";
 
 const taskStore = useTaskStore();
 const router = useRouter();
 const currentWeekStart = ref(new Date().toISOString().split("T")[0]);
-const hourLinesRef = ref([]);
+const diaryEntries = ref([]);
 const draggedTask = ref(null);
 const draggedDate = ref(null);
 const hourPositions = ref({});
@@ -113,11 +54,33 @@ const lastDragTop = ref(0);
 const initialDragOffsetY = ref(0);
 const dragEdge = ref(null);
 const originalHeight = ref(0);
-const diaryEntries = ref([]); // Dagboekentries van de ingelogde gebruiker
-
 const taskCache = ref(new Map());
 
-// Laad taken en dagboekentries asynchroon
+// Gebruik een gewone array voor functionele refs!
+const hourLinesRef = [];
+
+const weekDays = computed(() => {
+  const days = [];
+  const start = new Date(currentWeekStart.value);
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    days.push({
+      date: day.toISOString().split("T")[0],
+      dayOfWeek: day.getDay(),
+    });
+  }
+  return days;
+});
+
+const hourLines = computed(() => {
+  const hours = [];
+  for (let hour = 0; hour <= 23; hour++) {
+    hours.push(hour.toString().padStart(2, "0"));
+  }
+  return hours;
+});
+
 onMounted(async () => {
   await taskStore.loadTasks();
 
@@ -129,11 +92,12 @@ onMounted(async () => {
   currentWeekStart.value = monday.toISOString().split("T")[0];
 
   nextTick(() => {
-    hourLinesRef.value.forEach((container, index) => {
+    weekDays.value.forEach((_, index) => {
+      const container = hourLinesRef[index];
       if (container) {
-        const hourLines = container.querySelectorAll(".hour-line");
+        const hourLinesEls = container.querySelectorAll(".hour-line");
         hourPositions.value[index] = {};
-        hourLines.forEach((hourLine) => {
+        hourLinesEls.forEach((hourLine) => {
           const hour = hourLine.getAttribute("data-hour");
           hourPositions.value[index][hour] = hourLine.offsetTop;
         });
@@ -141,12 +105,10 @@ onMounted(async () => {
     });
   });
 
-  // Laad alleen dagboekentries van de ingelogde gebruiker
+  // Laad dagboekentries van de ingelogde gebruiker
   try {
-    // Wacht tot Firebase Auth status bekend is
     let user = auth.currentUser;
     if (!user) {
-      // Probeer te wachten op auth state change
       await new Promise(resolve => {
         const unsubscribe = auth.onAuthStateChanged(u => {
           user = u;
@@ -171,23 +133,22 @@ onMounted(async () => {
   }
 });
 
-watch(() => [taskStore.tasks, currentWeekStart.value], () => {
+watch([() => taskStore.tasks, currentWeekStart], () => {
   taskCache.value.clear();
-}, { deep: true });
-
-const weekDays = computed(() => {
-  const days = [];
-  const start = new Date(currentWeekStart.value);
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(start);
-    day.setDate(start.getDate() + i);
-    days.push({
-      date: day.toISOString().split("T")[0],
-      dayOfWeek: day.getDay(),
+  nextTick(() => {
+    weekDays.value.forEach((_, index) => {
+      const container = hourLinesRef[index];
+      if (container) {
+        const hourLinesEls = container.querySelectorAll(".hour-line");
+        hourPositions.value[index] = {};
+        hourLinesEls.forEach((hourLine) => {
+          const hour = hourLine.getAttribute("data-hour");
+          hourPositions.value[index][hour] = hourLine.offsetTop;
+        });
+      }
     });
-  }
-  return days;
-});
+  });
+}, { deep: true });
 
 const tasksForDay = computed(() => {
   return (date) => {
@@ -237,14 +198,6 @@ const nextWeek = () => {
   currentWeekStart.value = current.toISOString().split("T")[0];
 };
 
-const hourLines = computed(() => {
-  const hours = [];
-  for (let hour = 0; hour <= 23; hour++) {
-    hours.push(hour.toString().padStart(2, "0"));
-  }
-  return hours;
-});
-
 const showTooltip = (event, text) => {
   const element = event.target;
   if (element.scrollWidth > element.clientWidth) {
@@ -252,10 +205,6 @@ const showTooltip = (event, text) => {
   } else {
     element.removeAttribute("title");
   }
-};
-
-const sanitizeText = (text) => {
-  return text ? text.replace(/<!--|-->/g, "").trim() : "Onbekende taak";
 };
 
 const getTaskSchedule = (task, date) => {
@@ -305,34 +254,37 @@ const getTaskPosition = (task, date) => {
   const durationMinutes = totalEndMinutes - totalStartMinutes;
   const heightPx = (durationMinutes / 60) * hourHeightPx;
 
-  const baseFontSize = 16;
-  const topEm = topPx / baseFontSize;
-  const heightEm = heightPx / baseFontSize;
-
   return {
-    top: `${topEm}em`,
-    height: `${heightEm}em`,
+    top: `${topPx}px`,
+    height: `${heightPx}px`,
     background: "rgba(0, 255, 0, 0.2)",
   };
 };
+
+function openDiary(date) {
+  router.push(`/diary/${date}`);
+}
+
+function editTask(id) {
+  router.push(`/edit-task/${id}`);
+}
 
 const onDragStart = (event, task, date, edge) => {
   draggedTask.value = task;
   draggedDate.value = date;
   draggedTaskElement.value = event.target.closest(".task");
   dragEdge.value = edge;
-  originalHeight.value = draggedTaskElement.value.offsetHeight;
+  originalHeight.value = draggedTaskElement.value ? draggedTaskElement.value.offsetHeight : 0;
 
   const dragImage = new Image();
   dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
   event.dataTransfer.setDragImage(dragImage, 0, 0);
 
-  const rect = draggedTaskElement.value.getBoundingClientRect();
-  const edgeElement = event.target;
-  const edgeRect = edgeElement.getBoundingClientRect();
-  initialDragOffsetY.value = edge === "bottom" ? rect.bottom - event.clientY : event.clientY - rect.top;
-
-  draggedTaskElement.value.style.opacity = "0.5";
+  if (draggedTaskElement.value) {
+    const rect = draggedTaskElement.value.getBoundingClientRect();
+    initialDragOffsetY.value = edge === "bottom" ? rect.bottom - event.clientY : event.clientY - rect.top;
+    draggedTaskElement.value.style.opacity = "0.5";
+  }
   event.dataTransfer.setData("text/plain", task.id.toString());
 };
 
@@ -367,18 +319,18 @@ const onDragOver = (event, date) => {
 
     draggedTaskElement.value.style.top = `${newTopPx}px`;
     draggedTaskElement.value.style.height = `${newHeightPx}px`;
-    draggedTaskElement.value.style.left = `${rect.left + 60}px`;
+    draggedTaskElement.value.style.left = `60px`;
     lastDragTop.value = newTopPx;
   }
 };
 
 const onDrop = async (event, date) => {
-  if (!draggedTask.value || !draggedDate.value || !draggedTaskElement.value) return;
+  if (!draggedTask.value || !draggedDate.value) return;
 
   const hourLines = event.currentTarget;
-  const rect = hourLines.getBoundingClientRect();
   const hourLine = hourLines.querySelector(".hour-line");
   const hourHeight = hourLine ? hourLine.offsetHeight : 32;
+  const rect = hourLines.getBoundingClientRect();
   const y = event.clientY - rect.top + hourLines.scrollTop - initialDragOffsetY.value;
   const totalHours = Math.floor(y / hourHeight);
   const minutes = Math.round((y % hourHeight) / hourHeight * 60);
@@ -441,13 +393,10 @@ const onDrop = async (event, date) => {
 
   await taskStore.updateTask(draggedTask.value.id, updatedTask);
   taskCache.value.clear();
-  await nextTick(() => {
-    draggedTaskElement.value.style.top = `${lastDragTop.value}px`;
-    draggedTaskElement.value.style.height = `${originalHeight.value}px`;
-    draggedTaskElement.value.style.left = `${rect.left + 60}px`;
+
+  if (draggedTaskElement.value) {
     draggedTaskElement.value.style.opacity = "1";
-    draggedTaskElement.value.style.position = "absolute";
-  });
+  }
 
   draggedTask.value = null;
   draggedDate.value = null;
@@ -562,6 +511,7 @@ const deleteTaskInstance = async (task, date) => {
 
 .hour-lines {
   position: relative;
+  padding-left: 60px;
   min-height: 15em;
   max-height: 15em;
   overflow-y: auto;
@@ -703,7 +653,8 @@ const deleteTaskInstance = async (task, date) => {
   color: #007bff;
 }
 
-h1, h2 {
+h1,
+h2 {
   color: #333;
   text-align: center;
 }
