@@ -11,7 +11,35 @@
       </div>
       <div class="form-group">
         <label for="description">Beschrijving</label>
-        <textarea v-model="goal.description" id="description" placeholder="Voer een beschrijving in" rows="5"></textarea>
+        <textarea v-model="goal.description" id="description" placeholder="Voer een beschrijving in"
+          rows="5"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="deadline">Deadline</label>
+        <input v-model="goal.deadline" id="deadline" type="date" />
+      </div>
+      <div class="form-group">
+        <label for="nextEvaluationDate">Volgende evaluatie</label>
+        <input v-model="goal.nextEvaluationDate" id="nextEvaluationDate" type="date" />
+      </div>
+      <div class="form-group">
+        <label>Stappen / Benodigdheden</label>
+        <div v-for="(step, index) in goal.steps" :key="index" class="step-row">
+          <input v-model="goal.steps[index]" type="text" :placeholder="`Stap ${index + 1}`" />
+          <button type="button" class="remove-step" @click="removeStep(index)"
+            :disabled="goal.steps.length <= 1">Verwijder</button>
+        </div>
+        <button type="button" class="add-step" @click="addStep">Stap toevoegen</button>
+      </div>
+      <div class="form-group">
+        <label for="howToAchieve">Hoe behaal ik dit doel</label>
+        <textarea v-model="goal.howToAchieve" id="howToAchieve"
+          placeholder="Wat ga je praktisch doen om het doel te behalen?" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="fallbackPlan">Wat doe ik als het niet goed gaat</label>
+        <textarea v-model="goal.fallbackPlan" id="fallbackPlan" placeholder="Plan B / wat te doen bij tegenslag"
+          rows="3"></textarea>
       </div>
       <div class="form-actions">
         <button class="action-button" @click="updateGoal" title="Doel opslaan">
@@ -40,7 +68,7 @@ onMounted(async () => {
   const goalId = route.params.id;
   const foundGoal = goalStore.goals.find(g => g.id === goalId);
   if (foundGoal) {
-    goal.value = { ...foundGoal };
+    goal.value = { ...foundGoal, deadline: foundGoal.deadline || '', nextEvaluationDate: foundGoal.nextEvaluationDate || '', steps: (foundGoal.steps && foundGoal.steps.length > 0) ? foundGoal.steps.slice() : [''], howToAchieve: foundGoal.howToAchieve || '', fallbackPlan: foundGoal.fallbackPlan || '' };
   } else {
     goalStore.error = 'Doel niet gevonden';
   }
@@ -51,10 +79,26 @@ async function updateGoal() {
     goalStore.error = 'Titel is verplicht';
     return;
   }
-  await goalStore.updateGoal(route.params.id, goal.value);
+  const updated = {
+    ...goal.value,
+    steps: (goal.value.steps || []).map(s => s.trim()).filter(Boolean),
+    nextEvaluationDate: goal.value.nextEvaluationDate || null,
+  };
+  await goalStore.updateGoal(route.params.id, updated);
   if (!goalStore.error) {
     router.push('/goals');
   }
+}
+
+function addStep() {
+  goal.value.steps = goal.value.steps || [''];
+  goal.value.steps.push('');
+}
+
+function removeStep(index) {
+  if (!goal.value.steps) return;
+  if (goal.value.steps.length <= 1) return;
+  goal.value.steps.splice(index, 1);
 }
 </script>
 
@@ -65,7 +109,8 @@ async function updateGoal() {
   margin: 0 auto;
 }
 
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   font-size: 1.2em;
   margin-top: 20px;

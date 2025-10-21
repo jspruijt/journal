@@ -8,6 +8,7 @@ import Dashboard from "./views/Dashboard.vue";
 import GoalsOverview from './views/GoalsOverview.vue';
 import AddGoal from './views/AddGoal.vue';
 import EditGoal from './views/EditGoal.vue';
+import GoalDetail from './views/GoalDetail.vue';
 
 const routes = [
   { path: "/", component: Home },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/dashboard', component: Dashboard },
   { path: '/goals', component: GoalsOverview },
   { path: '/add-goal', component: AddGoal },
+  { path: '/goal/:id', component: GoalDetail },
   { path: '/edit-goal/:id', component: EditGoal },
 ];
 

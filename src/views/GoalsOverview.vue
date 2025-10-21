@@ -14,11 +14,15 @@
     <div v-else class="goals-list">
       <div v-for="goal in goalStore.goals" :key="goal.id" class="goal-item" :class="{ completed: goal.completed }">
         <div class="goal-content">
-          <h3>{{ goal.title }}</h3>
+          <h3>
+            <a :href="`/goal/${goal.id}`" @click.prevent="$router.push(`/goal/${goal.id}`)" style="color:inherit; text-decoration:underline; cursor:pointer;">
+              {{ goal.title }}
+            </a>
+          </h3>
           <p>{{ goal.description }}</p>
-          <p class="created-at">Aangemaakt op: {{ formatDate(goal.createdAt) }}</p>
           <p class="deadline" v-if="goal.deadline">Deadline: {{ formatDate(goal.deadline) }}</p>
           <p class="deadline" v-else>Geen deadline</p>
+          <p class="next-eval" v-if="goal.nextEvaluationDate">Volgende evaluatie: {{ formatDate(goal.nextEvaluationDate) }}</p>
         </div>
         <div class="goal-actions">
           <button class="action-button" @click="toggleCompletion(goal.id)"
@@ -51,6 +55,17 @@ function formatDate(dateString) {
   if (!dateString) return 'Geen datum';
   const date = new Date(dateString);
   return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function snippet(text, max = 80) {
+  if (!text) return '';
+  try {
+    const str = String(text).replace(/\s+/g, ' ').trim();
+    if (str.length <= max) return str;
+    return str.slice(0, max - 1).trim() + '…';
+  } catch (e) {
+    return '';
+  }
 }
 
 async function toggleCompletion(goalId) {

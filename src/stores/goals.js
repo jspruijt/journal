@@ -72,9 +72,14 @@ export const useGoalStore = defineStore("goals", {
           userId: user.uid,
           createdAt: new Date().toISOString(),
           completed: false,
+          // new optional fields
           deadline: goal.deadline || null,
+          nextEvaluationDate: goal.nextEvaluationDate || null,
+          steps: goal.steps || [],
+          howToAchieve: goal.howToAchieve || '',
+          fallbackPlan: goal.fallbackPlan || '',
         });
-        this.goals.push({ id: docRef.id, ...goal, userId: user.uid, createdAt: new Date().toISOString(), completed: false, deadline: goal.deadline || null });
+        this.goals.push({ id: docRef.id, ...goal, userId: user.uid, createdAt: new Date().toISOString(), completed: false, deadline: goal.deadline || null, nextEvaluationDate: goal.nextEvaluationDate || null, steps: goal.steps || [], howToAchieve: goal.howToAchieve || '', fallbackPlan: goal.fallbackPlan || '' });
       } catch (error) {
         this.error = `Fout bij het toevoegen van een doel: ${error.message}`;
         console.error(this.error, error);
@@ -90,10 +95,10 @@ export const useGoalStore = defineStore("goals", {
         }
         const user = await waitForUser();
         const goalDoc = doc(db, "goals", goalId);
-        await updateDoc(goalDoc, { ...updatedGoal, userId: user.uid, deadline: updatedGoal.deadline || null });
+        await updateDoc(goalDoc, { ...updatedGoal, userId: user.uid, deadline: updatedGoal.deadline || null, nextEvaluationDate: updatedGoal.nextEvaluationDate || null, steps: updatedGoal.steps || [], howToAchieve: updatedGoal.howToAchieve || '', fallbackPlan: updatedGoal.fallbackPlan || '' });
         const goalIndex = this.goals.findIndex(goal => goal.id === goalId);
         if (goalIndex !== -1) {
-          this.goals[goalIndex] = { id: goalId, ...updatedGoal, userId: user.uid, deadline: updatedGoal.deadline || null };
+          this.goals[goalIndex] = { id: goalId, ...updatedGoal, userId: user.uid, deadline: updatedGoal.deadline || null, nextEvaluationDate: updatedGoal.nextEvaluationDate || null, steps: updatedGoal.steps || [], howToAchieve: updatedGoal.howToAchieve || '', fallbackPlan: updatedGoal.fallbackPlan || '' };
         }
         await this.loadGoals();
       } catch (error) {
