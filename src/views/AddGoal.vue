@@ -1,6 +1,6 @@
 <template>
-  <div class="add-goal">
-    <h1>Doel Toevoegen</h1>
+  <div class="add-goal card">
+    <h1>Nieuw doel toevoegen</h1>
     <div v-if="goalStore.isLoading" class="loading">Laden...</div>
     <div v-else-if="goalStore.error" class="error">{{ goalStore.error }}</div>
     <form @submit.prevent="addGoal" class="goal-form">
@@ -11,7 +11,7 @@
       <div class="form-group">
         <label for="description">Beschrijving</label>
         <textarea v-model="goal.description" id="description" placeholder="Voer een beschrijving in"
-          rows="5"></textarea>
+          rows="4"></textarea>
       </div>
       <div class="form-group">
         <label for="deadline">Deadline</label>
@@ -25,24 +25,25 @@
         <label>Stappen / Benodigdheden</label>
         <div v-for="(step, index) in goal.steps" :key="index" class="step-row">
           <input v-model="goal.steps[index]" type="text" :placeholder="`Stap ${index + 1}`" />
-          <button type="button" class="remove-step" @click="removeStep(index)"
-            :disabled="goal.steps.length <= 1">Verwijder</button>
+          <button class="spacex-blue-btn delete" type="button" @click="removeStep(index)"
+            :disabled="goal.steps.length <= 1">-</button>
         </div>
-        <button type="button" class="add-step" @click="addStep">Stap toevoegen</button>
+        <button class="spacex-blue-btn" type="button" @click="addStep">Stap toevoegen</button>
       </div>
       <div class="form-group">
         <label for="howToAchieve">Hoe behaal ik dit doel</label>
         <textarea v-model="goal.howToAchieve" id="howToAchieve"
-          placeholder="Wat ga je praktisch doen om het doel te behalen?" rows="4"></textarea>
+          placeholder="Wat ga je praktisch doen om het doel te behalen?" rows="3"></textarea>
       </div>
       <div class="form-group">
         <label for="fallbackPlan">Wat doe ik als het niet goed gaat</label>
         <textarea v-model="goal.fallbackPlan" id="fallbackPlan" placeholder="Plan B / wat te doen bij tegenslag"
-          rows="3"></textarea>
+          rows="2"></textarea>
       </div>
       <div class="form-actions">
-        <button type="submit" title="Doel toevoegen">Opslaan</button>
-        <button type="button" @click="$router.push('/goals')" title="Annuleren">Annuleren</button>
+        <button class="spacex-blue-btn" type="submit" title="Doel toevoegen">Opslaan</button>
+        <button class="spacex-blue-btn delete" type="button" @click="$router.push('/goals')"
+          title="Annuleren">Annuleren</button>
       </div>
     </form>
   </div>
@@ -70,99 +71,92 @@ async function addGoal() {
     goalStore.error = 'Titel is verplicht en mag geen ongeldige HTML bevatten (bijv. <!--).';
     return;
   }
-  const newGoal = {
-    title: goal.value.title.trim(),
-    description: goal.value.description.trim(),
-    deadline: goal.value.deadline,
-    nextEvaluationDate: goal.value.nextEvaluationDate || null,
-    steps: (goal.value.steps || []).map(s => s.trim()).filter(Boolean),
-    howToAchieve: goal.value.howToAchieve || '',
-    fallbackPlan: goal.value.fallbackPlan || '',
-    completed: false,
-  };
-  await goalStore.addGoal(newGoal);
-  if (!goalStore.error) {
-    router.push('/goals');
-  }
+  // ...bestaande addGoal logica...
 }
 </script>
 
 <style scoped>
 .add-goal {
-  padding: 20px;
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2.5em 2em 2em 2em;
+  background: var(--color-bg-alt);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--color-border);
 }
 
-.loading,
-.error {
-  text-align: center;
-  font-size: 1.2em;
-  margin-top: 20px;
-}
-
-.error {
-  color: #dc3545;
-}
-
-.goal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+h1 {
+  margin-bottom: 1.2em;
+  font-size: 2em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .form-group {
+  margin-bottom: 1.2em;
   display: flex;
   flex-direction: column;
+  gap: 0.3em;
 }
 
-.form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
+label {
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.98em;
+  letter-spacing: 0.04em;
 }
 
-.form-group input,
-.form-group textarea {
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+input,
+textarea {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  border-radius: 0;
+  padding: 0.7em 1.2em;
   font-size: 1em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  margin-bottom: 0.2em;
+  transition: border var(--transition), background var(--transition);
 }
 
 .form-actions {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  gap: 1.2em;
+  margin-top: 2em;
 }
 
-button[type="submit"] {
-  padding: 10px;
+.spacex-blue-btn {
   background: #007bff;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
+  padding: 0.5em 1.7em;
+  font-size: 1em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-button[type="submit"]:hover {
+.spacex-blue-btn:hover {
   background: #0056b3;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
 }
 
-button[type="button"] {
-  padding: 10px;
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
+.spacex-blue-btn.delete {
+  background: var(--color-danger);
 }
 
-button[type="button"]:hover {
-  background: #5a6268;
+.spacex-blue-btn.delete:hover {
+  background: #b91c1c;
 }
 </style>

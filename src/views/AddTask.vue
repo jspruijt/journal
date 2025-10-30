@@ -1,5 +1,5 @@
 <template>
-  <div class="add-task">
+  <div class="add-task card">
     <h1>Taak toevoegen</h1>
     <form @submit.prevent="saveTask" class="task-form">
       <div class="form-group">
@@ -58,8 +58,9 @@
         <input id="tags" v-model="task.tagsInput" type="text" placeholder="Voer tags in" />
       </div>
       <div class="form-actions">
-        <button type="submit" title="Taak opslaan">Opslaan</button>
-        <button type="button" @click="$router.push('/')" title="Annuleren">Annuleren</button>
+        <button class="spacex-blue-btn" type="submit" title="Taak opslaan">Opslaan</button>
+        <button class="spacex-blue-btn delete" type="button" @click="$router.push('/')"
+          title="Annuleren">Annuleren</button>
       </div>
     </form>
   </div>
@@ -181,37 +182,49 @@ const removeCustomDate = (index) => {
 
 <style scoped>
 .add-task {
-  padding: 20px;
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2.5em 2em 2em 2em;
+  background: var(--color-bg-alt);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--color-border);
 }
 
 .task-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1.2em;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  margin-bottom: 1.2em;
+  gap: 0.3em;
 }
 
 .form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.98em;
+  letter-spacing: 0.04em;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  border-radius: 0;
+  padding: 0.7em 1.2em;
   font-size: 1em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  margin-bottom: 0.2em;
+  transition: border var(--transition), background var(--transition);
 }
 
 .custom-date-input {
@@ -223,64 +236,60 @@ const removeCustomDate = (index) => {
 
 .form-actions {
   display: flex;
-  gap: 10px;
+  gap: 1.2em;
   justify-content: flex-end;
+  margin-top: 2em;
 }
 
-button[type="submit"] {
-  padding: 10px;
-  min-width: 100px;
+.spacex-blue-btn {
   background: #007bff;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
+  border-radius: 0;
+  padding: 0.5em 1.7em;
   font-size: 1em;
-  text-align: center;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-button[type="submit"]:hover {
+.spacex-blue-btn:hover {
   background: #0056b3;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
 }
 
-button[type="button"].add-date,
-button[type="button"]:not(.remove-date) {
-  padding: 10px;
-  min-width: 100px;
-  background: #6c757d;
-  color: white;
+.spacex-blue-btn.delete {
+  background: var(--color-danger);
+}
+
+.spacex-blue-btn.delete:hover {
+  background: #b91c1c;
+}
+
+.remove-date {
+  background: var(--color-danger);
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
+  padding: 0.4em 1.2em;
+  font-size: 0.95em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.2s;
-  font-size: 1em;
-  text-align: center;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-button[type="button"].add-date:hover,
-button[type="button"]:not(.remove-date):hover {
-  background: #5a6268;
+.remove-date:hover {
+  background: #b91c1c;
 }
 
-button.remove-date {
-  padding: 8px;
-  min-width: 80px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.9em;
-  text-align: center;
-}
-
-button.remove-date:hover {
-  background: #c82333;
-}
-
-button.remove-date:disabled {
+.remove-date:disabled {
   background: #6c757d;
   cursor: not-allowed;
 }

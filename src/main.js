@@ -2,8 +2,10 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
+
 import { db as firebaseApp } from './firebase'; // Importeer de Firebase app
 import { registerSW } from 'virtual:pwa-register' // Gebruik registerSW in plaats van useRegisterSW
+import './assets/theme.css';
 
 console.log("main.js: Start applicatie laden");
 

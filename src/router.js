@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import Login from "./views/Login.vue";
 import Home from "./views/Home.vue";
 import UnplannedTasks from "./views/UnplannedTasks.vue";
 import AddTask from "./views/AddTask.vue";
@@ -21,11 +22,41 @@ const routes = [
   { path: '/add-goal', component: AddGoal },
   { path: '/goal/:id', component: GoalDetail },
   { path: '/edit-goal/:id', component: EditGoal },
+  { path: '/login', component: Login },
 ];
+// Export een logout functie voor gebruik in de app
+import { signOut, getAuth, onAuthStateChanged } from 'firebase/auth';
+export async function logout() {
+  const auth = getAuth();
+  await signOut(auth);
+}
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Navigation guard: alleen toegang als ingelogd, behalve /login
+router.beforeEach(async (to, from, next) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  // Wacht op auth state als nog niet bekend
+  if (user === null) {
+    await new Promise(resolve => {
+      const unsub = onAuthStateChanged(auth, () => {
+        unsub();
+        resolve();
+      });
+    });
+  }
+  const isLoggedIn = !!auth.currentUser;
+  if (!isLoggedIn && to.path !== '/login') {
+    next({ path: '/login' });
+  } else if (isLoggedIn && to.path === '/login') {
+    next({ path: '/' });
+  } else {
+    next();
+  }
 });
 
 export default router;

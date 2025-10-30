@@ -1,13 +1,13 @@
 <template>
     <div class="auth-buttons" @click.stop>
         <div v-if="user" class="dropdown">
-            <button class="action-button dropdown-toggle" title="Accountopties" @click="toggleDropdown"
+            <button class="spacex-nav-btn account-btn" title="Accountopties" @click="toggleDropdown"
                 aria-expanded="isDropdownOpen">
-                <span>👤</span>
+                <span class="account-icon">👤</span>
             </button>
             <div v-if="isDropdownOpen" class="dropdown-menu">
                 <div class="dropdown-item user-info">{{ user.displayName || user.email }}</div>
-                <button class="dropdown-item logout-button" @click="logout" title="Uitloggen">Uitloggen</button>
+                <button class="dropdown-item logout-button" @click="handleLogout" title="Uitloggen">Uitloggen</button>
             </div>
         </div>
         <div v-else>
@@ -21,9 +21,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { defineProps } from 'vue';
-import { auth } from '../firebase';
-import { signOut, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useRouter } from 'vue-router';
+import { logout as globalLogout } from '../router';
 
 defineProps({
     user: Object,
@@ -42,21 +41,15 @@ function closeDropdown(event) {
     }
 }
 
-async function signIn() {
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        router.push('/');
-    } catch (error) {
-        console.error('Fout bij inloggen:', error);
-    }
+function signIn() {
+    router.push('/login');
 }
 
-async function logout() {
+async function handleLogout() {
     try {
-        await signOut(auth);
+        await globalLogout();
         isDropdownOpen.value = false;
-        router.push('/');
+        router.push('/login');
     } catch (error) {
         console.error('Fout bij uitloggen:', error);
     }
@@ -84,54 +77,51 @@ onUnmounted(() => {
     display: inline-block;
 }
 
-.action-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    font-size: 1.5em;
-    cursor: pointer;
+
+.spacex-nav-btn.account-btn {
+    padding: 0.2em 1.1em;
+    font-size: 1.2em;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s, transform 0.1s;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: none;
+    transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-.action-button:hover {
-    background-color: #0056b3;
-    transform: scale(1.1);
+.spacex-nav-btn.account-btn:hover {
+    background: var(--color-primary);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+    transform: translateY(-2px) scale(1.04);
 }
 
-.dropdown-toggle {
-    font-size: 1.8em;
+.account-icon {
+    font-size: 1.3em;
+    margin-right: 0;
 }
 
 .dropdown-menu {
     position: absolute;
-    top: 50px;
-    /* Adjusted to touch the button, no gap */
+    top: 48px;
     right: 0;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: var(--color-bg-alt);
+    border-radius: 0;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--color-border);
     min-width: 200px;
     z-index: 1000;
 }
 
-.dropdown-item {
-    padding: 10px 15px;
-    font-size: 1em;
-    color: #333;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
 .dropdown-item.user-info {
     font-weight: bold;
-    color: #007bff;
+    color: var(--color-primary);
 }
 
 .logout-button {
@@ -149,9 +139,37 @@ onUnmounted(() => {
 
 .login-button {
     background-color: #28a745;
+    color: #fff;
+    border-radius: 0;
+    border: none;
+    font-size: 1.3em;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), transform var(--transition);
 }
 
 .login-button:hover {
     background-color: #218838;
+    transform: scale(1.08);
+}
+
+.logout-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.logout-button:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+.login-button {
+    background-color: #28a745;
 }
 </style>

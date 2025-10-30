@@ -1,9 +1,9 @@
 <template>
   <div class="dashboard">
-    <h1>Dagboek Dashboard</h1>
+    <h1 class="spacex-title">Dagboek Dashboard</h1>
 
-    <div class="mood-overview">
-      <h2>Stemming Overzicht</h2>
+    <div class="mood-overview card">
+      <h2 class="spacex-section-title">Stemming Overzicht</h2>
       <div class="charts">
         <div class="chart-container" v-if="!isLoading && !error">
           <h3>Laatste Week</h3>
@@ -13,17 +13,17 @@
           <h3>Laatste Maand</h3>
           <div id="monthMoodChart"></div>
         </div>
-        <div class="average-container" v-if="!isLoading && !error">
-          <h3>Gemiddeld Overall</h3>
-          <p>{{ overallAverage.toFixed(1) }}</p>
-        </div>
-        <div v-if="isLoading" class="loading-message">Laden...</div>
-        <div v-if="error" class="loading-message">{{ error }}</div>
       </div>
+      <div class="average-container" v-if="!isLoading && !error">
+        <h3>Gemiddeld Overall</h3>
+        <p>{{ overallAverage.toFixed(1) }}</p>
+      </div>
+      <div v-if="isLoading" class="loading-message">Laden...</div>
+      <div v-if="error" class="loading-message">{{ error }}</div>
     </div>
 
-    <div class="mottos-overview">
-      <h2>Lijfspreuken</h2>
+    <div class="mottos-overview card">
+      <h2 class="spacex-section-title">Lijfspreuken</h2>
       <ul class="mottos-list" v-if="!isLoading && !error">
         <li v-for="(motto, index) in paginatedMottos" :key="index">
           {{ motto }}
@@ -32,20 +32,21 @@
       <div v-if="isLoading" class="loading-message">Laden...</div>
       <div v-if="error" class="loading-message">{{ error }}</div>
       <div class="pagination" v-if="!isLoading && !error">
-        <button @click="previousPage" :disabled="currentPage === 1">Vorige</button>
+        <button class="spacex-blue-btn" @click="previousPage" :disabled="currentPage === 1">Vorige</button>
         <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages">Volgende</button>
+        <button class="spacex-blue-btn" @click="nextPage" :disabled="currentPage === totalPages">Volgende</button>
       </div>
     </div>
 
-    <div class="last-seven-days">
-      <h2>Afgelopen 7 Dagen</h2>
+    <div class="last-seven-days card">
+      <h2 class="spacex-section-title">Afgelopen 7 Dagen</h2>
       <div v-for="day in lastSevenDays" :key="day.date" class="day-entry" v-if="!isLoading && !error">
         <h3>{{ formatDate(day.date) }}</h3>
         <div v-if="day.entry">
           <p><strong>Inhoud:</strong> {{ day.entry.content || 'Geen inhoud' }}</p>
           <p><strong>Beperkende gedachten:</strong> {{ day.entry.limitingThoughts || 'Geen beperkende gedachten' }}</p>
-          <p><strong>Gedachten om op te focussen:</strong> {{ day.entry.focusThoughts || 'Geen gedachten om op te focussen' }}</p>
+          <p><strong>Gedachten om op te focussen:</strong> {{ day.entry.focusThoughts || "Geen gedachten om op te "
+            + "focussen" }}</p>
         </div>
         <p v-else>Geen gegevens voor deze dag</p>
       </div>
@@ -223,39 +224,50 @@ const formatDate = (dateStr) => {
 
 <style scoped>
 .dashboard {
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 20px;
-  font-size: 16px;
+  padding: 2.5em 1.5em 2em 1.5em;
+  font-size: 1.05em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   position: relative;
   min-height: 100vh;
   padding-bottom: 80px;
 }
 
-h1 {
-  color: #333;
+.spacex-title {
+  text-transform: uppercase;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+  font-size: 1.7em;
+  margin-bottom: 1.5em;
   text-align: center;
-  margin-bottom: 20px;
 }
 
-h2 {
-  color: #555;
-  margin-top: 20px;
+.spacex-section-title {
+  text-transform: uppercase;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+  font-size: 1.15em;
+  margin-bottom: 1.2em;
 }
 
-.mood-overview,
-.mottos-overview,
-.last-seven-days {
-  margin-bottom: 30px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+.card {
+  margin-bottom: 2.2em;
+  background: var(--color-bg-alt);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--color-border);
+  padding: 2em 2.5em;
+  transition: box-shadow var(--transition), background var(--transition);
 }
 
 .charts {
   display: flex;
-  gap: 20px;
+  gap: 2em;
 }
 
 .chart-container,
@@ -267,75 +279,113 @@ h2 {
 #weekMoodChart,
 #monthMoodChart {
   margin: 0 auto;
-  background: #fff;
-  border-radius: 4px;
-  padding: 10px;
+  background: var(--color-bg);
+  border-radius: 0;
+  border: 1.5px solid var(--color-border);
+  padding: 1em;
 }
 
 .average-container p {
   font-size: 1.5em;
   font-weight: bold;
   color: #007bff;
-  background: #fff;
-  padding: 10px;
-  border-radius: 4px;
+  background: var(--color-bg);
+  padding: 0.7em 1.5em;
+  border-radius: 0;
+  border: 1.5px solid var(--color-border);
   display: inline-block;
 }
 
 .mottos-list {
   list-style-type: none;
   padding: 0;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 
 .mottos-list li {
-  padding: 5px 0;
-  border-bottom: 1px solid #eee;
+  padding: 0.6em 0;
+  border-bottom: 1.5px solid var(--color-border);
+  font-size: 1em;
+}
+
+.mottos-list li:last-child {
+  border-bottom: none;
 }
 
 .pagination {
-  margin-top: 10px;
+  margin-top: 1.2em;
   text-align: center;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2em;
 }
 
 .pagination button {
-  padding: 8px 16px;
+  margin: 0 0.7em;
+}
+
+.pagination span {
+  margin: 0 0.7em;
+  min-width: 110px;
+  display: inline-block;
+  text-align: center;
+}
+
+.spacex-blue-btn {
   background: #007bff;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
+  padding: 0.5em 1.7em;
+  font-size: 1em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-.pagination button:hover {
+.spacex-blue-btn:hover {
   background: #0056b3;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
 }
 
-.pagination button:disabled {
+.spacex-blue-btn:disabled {
   background: #6c757d;
   cursor: not-allowed;
 }
 
 .day-entry {
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
+  margin: 1.2em 0;
+  padding: 1.2em 1.5em;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-bg);
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 
 .day-entry h3 {
   margin-top: 0;
-  color: #333;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  font-size: 1.05em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .day-entry p {
-  margin: 5px 0;
+  margin: 0.4em 0;
 }
 
 .loading-message {
   text-align: center;
   color: #6c757d;
-  padding: 20px;
+  padding: 1.5em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 </style>

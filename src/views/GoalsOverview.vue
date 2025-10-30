@@ -3,7 +3,7 @@
     <h1>Doelen Overzicht</h1>
     <div class="action-bar">
       <button class="action-button add-goal" @click="$router.push('/add-goal')" title="Doel toevoegen">
-        <span>🎯</span>
+        <span class="add-goal-icon">🎯</span>
       </button>
     </div>
     <div v-if="goalStore.isLoading" class="loading">Laden...</div>
@@ -12,29 +12,28 @@
       Geen doelen beschikbaar. Voeg een nieuw doel toe!
     </div>
     <div v-else class="goals-list">
-      <div v-for="goal in goalStore.goals" :key="goal.id" class="goal-item" :class="{ completed: goal.completed }">
+      <div v-for="goal in goalStore.goals" :key="goal.id" class="card goal-item" :class="{ completed: goal.completed }">
         <div class="goal-content">
-          <h3>
-            <a :href="`/goal/${goal.id}`" @click.prevent="$router.push(`/goal/${goal.id}`)" style="color:inherit; text-decoration:underline; cursor:pointer;">
+          <h3 class="goal-title">
+            <a :href="`/goal/${goal.id}`" @click.prevent="$router.push(`/goal/${goal.id}`)" class="goal-link">
               {{ goal.title }}
             </a>
           </h3>
-          <p>{{ goal.description }}</p>
+          <p class="desc">{{ goal.description }}</p>
           <p class="deadline" v-if="goal.deadline">Deadline: {{ formatDate(goal.deadline) }}</p>
           <p class="deadline" v-else>Geen deadline</p>
-          <p class="next-eval" v-if="goal.nextEvaluationDate">Volgende evaluatie: {{ formatDate(goal.nextEvaluationDate) }}</p>
+          <p class="next-eval" v-if="goal.nextEvaluationDate">Volgende evaluatie: {{ formatDate(goal.nextEvaluationDate)
+          }}</p>
         </div>
         <div class="goal-actions">
-          <button class="action-button" @click="toggleCompletion(goal.id)"
+          <button class="spacex-blue-btn" @click="toggleCompletion(goal.id)"
             :title="goal.completed ? 'Markeer als onvoltooid' : 'Markeer als voltooid'">
-            <span>{{ goal.completed ? '🔄' : '✔' }}</span>
+            {{ goal.completed ? '🔄' : '✔' }}
           </button>
-          <button class="action-button" @click="$router.push(`/edit-goal/${goal.id}`)" title="Doel bewerken">
-            <span>✏️</span>
-          </button>
-          <button class="action-button delete" @click="deleteGoal(goal.id)" title="Doel verwijderen">
-            <span>🗑️</span>
-          </button>
+          <button class="spacex-blue-btn" @click="$router.push(`/edit-goal/${goal.id}`)"
+            title="Doel bewerken">Bewerk</button>
+          <button class="spacex-blue-btn delete" @click="deleteGoal(goal.id)"
+            title="Doel verwijderen">Verwijder</button>
         </div>
       </div>
     </div>
@@ -81,126 +80,164 @@ async function deleteGoal(goalId) {
 
 <style scoped>
 .goals-overview {
-  padding: 20px;
-  max-width: 800px;
+  padding: 2.5em 1.5em 2em 1.5em;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 .action-bar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 2em;
 }
 
 .action-button.add-goal {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 0;
+  background: #007bff;
+  color: #fff;
+  font-size: 1.3em;
+  box-shadow: none;
   border: none;
-  background-color: #007bff;
-  color: white;
-  font-size: 1.8em;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.1s;
+  transition: background var(--transition), transform var(--transition);
 }
 
 .action-button.add-goal:hover {
-  background-color: #0056b3;
-  transform: scale(1.1);
+  background: #0056b3;
+  transform: scale(1.08);
+}
+
+.action-button.add-goal {
+  width: 42px;
+  height: 42px;
+  border-radius: 0;
+  background: #007bff;
+  color: #fff;
+  font-size: 1.5em;
+  box-shadow: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.action-button.add-goal:hover {
+  background: #0056b3;
+  transform: scale(1.08);
+}
+
+.add-goal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  width: 100%;
+  height: 100%;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.goal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg-alt);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  padding: 2em 2.5em;
+  transition: box-shadow var(--transition), background var(--transition);
+}
+
+.goal-item.completed {
+  opacity: 0.7;
+  filter: grayscale(0.2);
+}
+
+.goal-title {
+  margin: 0 0 0.5em 0;
+  font-size: 1.3em;
+  text-transform: uppercase;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.goal-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color var(--transition);
+  font-size: 1.1em;
+}
+
+.goal-link:hover {
+  color: var(--color-primary-hover);
+}
+
+.desc {
+  color: var(--color-text);
+  margin-bottom: 0.5em;
+}
+
+.deadline,
+.next-eval {
+  font-size: 0.98em;
+  color: var(--color-accent);
+}
+
+.goal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  margin-left: 2em;
+}
+
+.spacex-blue-btn {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  padding: 0.5em 1.7em;
+  font-size: 1em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
+}
+
+.spacex-blue-btn:hover {
+  background: #0056b3;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+}
+
+.spacex-blue-btn.delete {
+  background: var(--color-danger);
+}
+
+.spacex-blue-btn.delete:hover {
+  background: #b91c1c;
 }
 
 .loading,
 .error,
 .no-goals {
   text-align: center;
-  font-size: 1.2em;
-  margin-top: 20px;
+  font-size: 1.1em;
+  margin-top: 2em;
 }
 
 .error {
-  color: #dc3545;
-}
-
-.goals-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.goal-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.goal-item:hover {
-  transform: translateY(-2px);
-}
-
-.goal-item.completed {
-  background-color: #d4edda;
-}
-
-.goal-content {
-  flex: 1;
-}
-
-.goal-content h3 {
-  margin: 0 0 10px;
-  font-size: 1.5em;
-}
-
-.goal-content p {
-  margin: 0 0 5px;
-  color: #555;
-}
-
-.created-at,
-.deadline {
-  font-size: 0.9em;
-  color: #888;
-}
-
-.goal-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.action-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  font-size: 1.2em;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.action-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.1);
-}
-
-.action-button.delete {
-  background-color: #dc3545;
-}
-
-.action-button.delete:hover {
-  background-color: #b02a37;
+  color: var(--color-danger);
 }
 </style>

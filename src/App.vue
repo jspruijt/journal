@@ -1,28 +1,24 @@
 <template>
   <div id="app">
-    <div v-if="!user" class="auth-container">
-      <AuthButtons />
+    <AuthButtons v-if="!user" />
+    <div v-if="user">
+      <header class="main-header">
+        <AuthButtons :user="user" />
+        <nav class="main-nav">
+          <button class="spacex-nav-btn" @click="$router.push('/')">HOME</button>
+          <button class="spacex-nav-btn" @click="$router.push('/unplanned-tasks')">ONGEPLANDE TAKEN <span
+              class="counter">{{ unplannedTasksCount }}</span></button>
+          <button class="spacex-nav-btn" @click="$router.push('/goals')">DOELEN <span class="counter">{{
+            activeGoalsCount }}</span></button>
+          <button class="spacex-nav-btn" @click="$router.push('/dashboard')">DASHBOARD</button>
+        </nav>
+      </header>
+      <main class="main-content">
+        <router-view />
+      </main>
     </div>
     <div v-else>
-      <AuthButtons :user="user" />
       <router-view />
-      <div class="floating-action-bar">
-        <button class="action-button add-task" @click="$router.push('/add-task')" title="Taak toevoegen">
-          <span>+</span>
-        </button>
-        <button class="action-button view-unplanned" @click="$router.push('/unplanned-tasks')" title="Ongeplande taken">
-          <span>📋</span><span class="counter">{{ unplannedTasksCount }}</span>
-        </button>
-        <button class="action-button view-goals" @click="$router.push('/goals')" title="Doelen overzicht">
-          <span>🏅</span><span class="counter">{{ activeGoalsCount }}</span>
-        </button>
-        <button class="action-button go-home" @click="$router.push('/')" title="Ga naar homescherm">
-          <span>🏠</span>
-        </button>
-        <button class="action-button go-dashboard" @click="$router.push('/dashboard')" title="Ga naar dashboard">
-          <span>📊</span>
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -70,8 +66,8 @@ const activeGoalsCount = computed(() => {
 <style scoped>
 #app {
   min-height: 100vh;
-  position: relative;
-  padding-bottom: 80px;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .auth-container {
@@ -81,62 +77,56 @@ const activeGoalsCount = computed(() => {
   min-height: 60vh;
 }
 
-.floating-action-bar {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+.main-header {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 1000;
+  align-items: flex-start;
+  padding: 1.5em 2em 0 2em;
+  background: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.5em;
 }
 
-.action-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  font-size: 1.5em;
-  cursor: pointer;
+.main-nav {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s, transform 0.1s;
+  gap: 2.2em;
+  margin-top: 1.2em;
 }
 
-.action-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.1);
+.spacex-nav-btn {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 0;
+  padding: 0.35em 1.2em;
+  font-size: 0.98em;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
 }
 
-.action-button span {
-  margin: 0;
-}
-
-.add-task span {
-  font-size: 1.8em;
-}
-
-.view-unplanned,
-.view-goals {
-  position: relative;
+.spacex-nav-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  border-color: var(--color-accent);
+  transform: translateY(-2px) scale(1.04);
 }
 
 .counter {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: #dc3545;
-  color: white;
+  background: var(--color-danger);
+  color: #fff;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  padding: 0.2em 0.7em;
   font-size: 0.9em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-left: 0.5em;
+}
+
+.main-content {
+  padding: 2em;
+  max-width: 900px;
+  margin: 0 auto;
 }
 </style>

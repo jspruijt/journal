@@ -1,40 +1,21 @@
 <template>
   <div class="home">
     <h1>Weekoverzicht</h1>
-    <WeekNavigation
-      :currentWeekStart="currentWeekStart"
-      :formatWeekRange="formatWeekRange"
-      :previousWeek="previousWeek"
-      :nextWeek="nextWeek"
-    />
-    <div class="week">
-      <DayColumn
-        v-for="(day, index) in weekDays"
-        :key="day.date"
-        :day="day"
-        :hourLines="hourLines"
-        :hourLinesRef="el => hourLinesRef[index] = el"
-        :tasksForDay="tasksForDay"
-        :getTaskPosition="getTaskPosition"
-        :getTaskSchedule="getTaskSchedule"
-        :getTaskTimeKey="getTaskTimeKey"
-        :showTooltip="showTooltip"
-        :formatShortDate="formatShortDate"
-        :hasDiaryEntry="hasDiaryEntry"
-        @openDiary="openDiary"
-        @dragOver="onDragOver"
-        @drop="onDrop"
-        @dragStart="onDragStart"
-        @toggleCompletion="toggleTaskCompletion"
-        @deleteInstance="deleteTaskInstance"
-        @editTask="editTask"
-      />
+    <WeekNavigation :currentWeekStart="currentWeekStart" :previousWeek="previousWeek" :nextWeek="nextWeek"
+      :selectedDay="selectedDay" :selectDay="selectDay" />
+    <div class="week" :class="{ 'single-day': selectedDay }">
+      <DayColumn v-for="(day, index) in displayedDays" :key="day.date" :day="day" :hourLines="hourLines"
+        :hourLinesRef="el => (hourLinesRef[index] = el)" :tasksForDay="tasksForDay" :getTaskPosition="getTaskPosition"
+        :getTaskSchedule="getTaskSchedule" :getTaskTimeKey="getTaskTimeKey" :showTooltip="showTooltip"
+        :formatShortDate="formatShortDate" :hasDiaryEntry="hasDiaryEntry" :isSingleDay="!!selectedDay"
+        @openDiary="openDiary" @toggleCompletion="toggleTaskCompletion" @deleteInstance="deleteTaskInstance"
+        @editTask="editTask" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useTaskStore } from "../stores/tasks";
 import { useRouter } from "vue-router";
 import { db, auth } from "../firebase";
@@ -44,24 +25,25 @@ import DayColumn from "../components/DayColumn.vue";
 
 const taskStore = useTaskStore();
 const router = useRouter();
-const currentWeekStart = ref(new Date().toISOString().split("T")[0]);
-const diaryEntries = ref([]);
-const draggedTask = ref(null);
-const draggedDate = ref(null);
-const hourPositions = ref({});
-const draggedTaskElement = ref(null);
-const lastDragTop = ref(0);
-const initialDragOffsetY = ref(0);
-const dragEdge = ref(null);
-const originalHeight = ref(0);
-const taskCache = ref(new Map());
 
-// Gebruik een gewone array voor functionele refs!
+/* --------------------------------------------------------------
+   Basis‑data
+   -------------------------------------------------------------- */
+const today = new Date().toISOString().split("T")[0];
+const currentWeekStart = ref(today);
+const selectedDay = ref(today);
+const diaryEntries = ref([]);
+const hourPositions = ref({});
+const taskCache = ref(new Map());
 const hourLinesRef = [];
 
+/* --------------------------------------------------------------
+   Computed: dagen, uren, etc.
+   -------------------------------------------------------------- */
 const weekDays = computed(() => {
   const days = [];
   const start = new Date(currentWeekStart.value);
+  if (isNaN(start.getTime())) start.setTime(new Date(today).getTime());
   for (let i = 0; i < 7; i++) {
     const day = new Date(start);
     day.setDate(start.getDate() + i);
@@ -73,589 +55,233 @@ const weekDays = computed(() => {
   return days;
 });
 
+const displayedDays = computed(() => {
+  if (selectedDay.value) {
+    const filtered = weekDays.value.filter(d => d && d.date === selectedDay.value);
+    return filtered.length > 0
+      ? filtered
+      : [{ date: selectedDay.value, dayOfWeek: new Date(selectedDay.value).getDay() }];
+  }
+  return weekDays.value.filter(d => d && d.date);
+});
+
 const hourLines = computed(() => {
   const hours = [];
-  for (let hour = 0; hour <= 23; hour++) {
-    hours.push(hour.toString().padStart(2, "0"));
-  }
+  for (let h = 0; h <= 23; h++) hours.push(h.toString().padStart(2, "0"));
   return hours;
 });
 
+const isSingleDayMode = computed(() => !!selectedDay.value);
+
+/* --------------------------------------------------------------
+   Logische uurposities (32px per uur)
+   -------------------------------------------------------------- */
+const updateHourPositions = () => {
+  const baseHeight = 32;
+  displayedDays.value.forEach((_, index) => {
+    hourPositions.value[index] = {};
+    for (let h = 0; h <= 23; h++) {
+      const hourStr = h.toString().padStart(2, "0");
+      hourPositions.value[index][hourStr] = h * baseHeight;
+    }
+  });
+};
+
+/* --------------------------------------------------------------
+   Lifecycle
+   -------------------------------------------------------------- */
 onMounted(async () => {
   await taskStore.loadTasks();
 
-  // Weekberekening
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   const monday = new Date(now.setDate(diff));
   currentWeekStart.value = monday.toISOString().split("T")[0];
 
-  nextTick(() => {
-    weekDays.value.forEach((_, index) => {
-      const container = hourLinesRef[index];
-      if (container) {
-        const hourLinesEls = container.querySelectorAll(".hour-line");
-        hourPositions.value[index] = {};
-        hourLinesEls.forEach((hourLine) => {
-          const hour = hourLine.getAttribute("data-hour");
-          hourPositions.value[index][hour] = hourLine.offsetTop;
-        });
-      }
-    });
-  });
+  updateHourPositions();
 
-  // Laad dagboekentries van de ingelogde gebruiker
   try {
     let user = auth.currentUser;
     if (!user) {
       await new Promise(resolve => {
-        const unsubscribe = auth.onAuthStateChanged(u => {
+        const unsub = auth.onAuthStateChanged(u => {
           user = u;
-          unsubscribe();
+          unsub();
           resolve();
         });
       });
     }
     if (user) {
-      const q = query(
-        collection(db, "diaryEntries"),
-        where("userId", "==", user.uid)
-      );
-      const diarySnapshot = await getDocs(q);
-      diaryEntries.value = diarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      diaryEntries.value = [];
+      const q = query(collection(db, "diaryEntries"), where("userId", "==", user.uid));
+      const snap = await getDocs(q);
+      diaryEntries.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
   } catch (e) {
-    console.error("Fout bij het laden van dagboekvermeldingen:", e);
-    diaryEntries.value = [];
+    console.error("Diary load error:", e);
   }
 });
 
-watch([() => taskStore.tasks, currentWeekStart], () => {
+watch([currentWeekStart, selectedDay], () => {
   taskCache.value.clear();
-  nextTick(() => {
-    weekDays.value.forEach((_, index) => {
-      const container = hourLinesRef[index];
-      if (container) {
-        const hourLinesEls = container.querySelectorAll(".hour-line");
-        hourPositions.value[index] = {};
-        hourLinesEls.forEach((hourLine) => {
-          const hour = hourLine.getAttribute("data-hour");
-          hourPositions.value[index][hour] = hourLine.offsetTop;
-        });
-      }
-    });
-  });
-}, { deep: true });
+  updateHourPositions();
+}, { immediate: true });
 
-const tasksForDay = computed(() => {
-  return (date) => {
-    if (!taskCache.value.has(date)) {
-      const tasks = taskStore.tasks
-        .map((task, index) => ({ ...task, originalIndex: index }))
-        .filter((task) => {
-          if (task.type === "one-time" && task.dates && task.dates.includes(date)) {
-            return true;
-          } else if (task.type === "recurring" && task.scheduledDates && task.scheduledDates.some(d => d.date === date)) {
-            return true;
-          }
-          return false;
-        });
-      taskCache.value.set(date, tasks);
-    }
-    return taskCache.value.get(date);
-  };
+/* --------------------------------------------------------------
+   Helpers
+   -------------------------------------------------------------- */
+const tasksForDay = computed(() => date => {
+  if (!taskCache.value.has(date)) {
+    const tasks = taskStore.tasks
+      .map((t, i) => ({ ...t, originalIndex: i }))
+      .filter(t => {
+        if (t.type === "one-time" && t.dates?.includes(date)) return true;
+        if (t.type === "recurring" && t.scheduledDates?.some(d => d.date === date)) return true;
+        return false;
+      });
+    taskCache.value.set(date, tasks);
+  }
+  return taskCache.value.get(date) || [];
 });
 
-const hasDiaryEntry = (date) => {
-  return diaryEntries.value.find((e) => e.date === date && e.content?.trim()) !== undefined;
-};
+const hasDiaryEntry = date => diaryEntries.value.some(e => e.date === date && e.content?.trim());
 
-const formatWeekRange = (start) => {
-  const end = new Date(start);
-  end.setDate(new Date(start).getDate() + 6);
-  return `${new Date(start).toLocaleDateString("nl-NL", { day: "numeric", month: "long" })} - ${end.toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}`;
-};
-
-const formatShortDate = (date) => {
+const formatShortDate = date => {
   const d = new Date(date);
   const day = d.getDate();
-  const weekday = new Intl.DateTimeFormat("nl-NL", { weekday: "short" }).format(d).slice(0, 2).toLowerCase();
+  const weekday = new Intl.DateTimeFormat("nl-NL", { weekday: "short" })
+    .format(d)
+    .slice(0, 2)
+    .toLowerCase();
   return `${day} (${weekday})`;
 };
 
 const previousWeek = () => {
-  const current = new Date(currentWeekStart.value);
-  current.setDate(current.getDate() - 7);
-  currentWeekStart.value = current.toISOString().split("T")[0];
+  const d = new Date(currentWeekStart.value);
+  d.setDate(d.getDate() - 7);
+  currentWeekStart.value = d.toISOString().split("T")[0];
+  selectedDay.value = null;
 };
 
 const nextWeek = () => {
-  const current = new Date(currentWeekStart.value);
-  current.setDate(current.getDate() + 7);
-  currentWeekStart.value = current.toISOString().split("T")[0];
+  const d = new Date(currentWeekStart.value);
+  d.setDate(d.getDate() + 7);
+  currentWeekStart.value = d.toISOString().split("T")[0];
+  selectedDay.value = null;
 };
 
-const showTooltip = (event, text) => {
-  const element = event.target;
-  if (element.scrollWidth > element.clientWidth) {
-    element.setAttribute("title", text);
-  } else {
-    element.removeAttribute("title");
-  }
+const selectDay = date => {
+  selectedDay.value = selectedDay.value === date ? null : date;
+};
+
+const showTooltip = (e, text) => {
+  const el = e.target;
+  el.title = el.scrollWidth > el.clientWidth ? text : "";
 };
 
 const getTaskSchedule = (task, date) => {
-  const scheduleFromDates = task.scheduledDates?.find(d => d.date === date);
-  if (scheduleFromDates) {
-    return { ...scheduleFromDates };
-  }
-  const scheduleFromTimes = task.timesByDate?.[date];
-  if (scheduleFromTimes) {
-    return { ...scheduleFromTimes };
-  }
-  return null;
+  return task.scheduledDates?.find(d => d.date === date) ||
+    task.timesByDate?.[date] ||
+    null;
 };
 
 const getTaskTimeKey = (task, date) => {
-  const schedule = getTaskSchedule(task, date);
-  return schedule ? `${schedule.startTime}-${schedule.endTime}` : "00:00-00:00";
+  const s = getTaskSchedule(task, date);
+  return s ? `${s.startTime}-${s.endTime}` : "00:00-00:00";
 };
 
+/* --------------------------------------------------------------
+   Taak‑positie: EXACTE duur (geen minimum)
+   -------------------------------------------------------------- */
 const getTaskPosition = (task, date) => {
   const schedule = getTaskSchedule(task, date);
-  if (!schedule || !schedule.startTime || !schedule.endTime) {
-    return { top: "0em", height: "1.5em", background: "rgba(255, 0, 0, 0.2)" };
+  const baseHeight = 32;
+  const displayHeight = isSingleDayMode.value ? 48 : 32;
+  const scale = displayHeight / baseHeight;
+
+  if (!schedule?.startTime || !schedule?.endTime) {
+    return { top: "0px", height: `${displayHeight}px`, background: "rgba(255,0,0,0.2)" };
   }
 
-  const dayIndex = weekDays.value.findIndex((day) => day.date === date);
-  const positions = hourPositions.value[dayIndex] || {};
-  if (Object.keys(positions).length === 0) {
-    return { top: "0em", height: "1.5em", background: "rgba(255, 0, 0, 0.2)" };
+  const dayIdx = displayedDays.value.findIndex(d => d && d.date === date);
+  const positions = hourPositions.value[dayIdx];
+
+  if (!positions) {
+    return { top: "0px", height: `${displayHeight}px` };
   }
 
-  const [startHours, startMinutes] = schedule.startTime.split(":").map(Number);
-  const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
+  const [sh, sm] = schedule.startTime.split(":").map(Number);
+  const [eh, em] = schedule.endTime.split(":").map(Number);
 
-  const startHourStr = startHours.toString().padStart(2, "0");
-  const endHourStr = endHours.toString().padStart(2, "0");
+  const logicalTop = positions[sh.toString().padStart(2, "0")] + (sm / 60) * baseHeight;
+  const durationMin = (eh * 60 + em) - (sh * 60 + sm);
+  const logicalHeight = (durationMin / 60) * baseHeight;
 
-  const startHourTop = positions[startHourStr] || 0;
-  const endHourTop = positions[endHourStr] || 0;
-
-  const hourHeightPx = positions["01"] - positions["00"] || 32;
-  const minuteOffsetPx = (startMinutes / 60) * hourHeightPx;
-  const topPx = startHourTop + minuteOffsetPx;
-
-  const totalStartMinutes = startHours * 60 + startMinutes;
-  const totalEndMinutes = endHours * 60 + endMinutes;
-  const durationMinutes = totalEndMinutes - totalStartMinutes;
-  const heightPx = (durationMinutes / 60) * hourHeightPx;
+  const visualTop = logicalTop * scale;
+  const visualHeight = logicalHeight * scale;
 
   return {
-    top: `${topPx}px`,
-    height: `${heightPx}px`,
-    background: "rgba(0, 255, 0, 0.2)",
+    top: `${visualTop}px`,
+    height: `${visualHeight}px`,
+    background: "rgba(0,255,0,0.2)",
   };
 };
 
-function openDiary(date) {
-  router.push(`/diary/${date}`);
-}
+/* --------------------------------------------------------------
+   Navigatie
+   -------------------------------------------------------------- */
+const openDiary = date => router.push(`/diary/${date}`);
+const editTask = id => router.push(`/edit-task/${id}`);
 
-function editTask(id) {
-  router.push(`/edit-task/${id}`);
-}
-
-const onDragStart = (event, task, date, edge) => {
-  draggedTask.value = task;
-  draggedDate.value = date;
-  draggedTaskElement.value = event.target.closest(".task");
-  dragEdge.value = edge;
-  originalHeight.value = draggedTaskElement.value ? draggedTaskElement.value.offsetHeight : 0;
-
-  const dragImage = new Image();
-  dragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
-  event.dataTransfer.setDragImage(dragImage, 0, 0);
-
-  if (draggedTaskElement.value) {
-    const rect = draggedTaskElement.value.getBoundingClientRect();
-    initialDragOffsetY.value = edge === "bottom" ? rect.bottom - event.clientY : event.clientY - rect.top;
-    draggedTaskElement.value.style.opacity = "0.5";
-  }
-  event.dataTransfer.setData("text/plain", task.id.toString());
-};
-
-const onDragOver = (event, date) => {
-  event.preventDefault();
-  if (draggedTask.value && draggedTaskElement.value) {
-    const hourLines = event.currentTarget;
-    const rect = hourLines.getBoundingClientRect();
-    const hourLine = hourLines.querySelector(".hour-line");
-    const hourHeight = hourLine ? hourLine.offsetHeight : 32;
-    const y = event.clientY - rect.top + hourLines.scrollTop;
-
-    let newTopPx, newHeightPx;
-    const dayIndex = weekDays.value.findIndex((day) => day.date === date);
-    const positions = hourPositions.value[dayIndex] || {};
-    const schedule = getTaskSchedule(draggedTask.value, draggedDate.value);
-    const [startHours, startMinutes] = schedule ? schedule.startTime.split(":").map(Number) : [0, 0];
-    const [endHours, endMinutes] = schedule ? schedule.endTime.split(":").map(Number) : [1, 0];
-    const originalTopPx = positions[startHours.toString().padStart(2, "0")] + (startMinutes / 60) * hourHeight;
-    const originalHeightPx = (endHours * 60 + endMinutes - (startHours * 60 + startMinutes)) / 60 * hourHeight;
-
-    if (dragEdge.value === "top") {
-      newTopPx = Math.max(0, y - initialDragOffsetY.value);
-      newHeightPx = Math.max(32, originalHeightPx + (originalTopPx - newTopPx));
-    } else if (dragEdge.value === "bottom") {
-      newTopPx = originalTopPx;
-      newHeightPx = Math.max(32, y + initialDragOffsetY.value - originalTopPx);
-    } else if (dragEdge.value === "middle") {
-      newTopPx = Math.max(0, y - initialDragOffsetY.value);
-      newHeightPx = originalHeightPx;
-    }
-
-    draggedTaskElement.value.style.top = `${newTopPx}px`;
-    draggedTaskElement.value.style.height = `${newHeightPx}px`;
-    draggedTaskElement.value.style.left = `60px`;
-    lastDragTop.value = newTopPx;
-  }
-};
-
-const onDrop = async (event, date) => {
-  if (!draggedTask.value || !draggedDate.value) return;
-
-  const hourLines = event.currentTarget;
-  const hourLine = hourLines.querySelector(".hour-line");
-  const hourHeight = hourLine ? hourLine.offsetHeight : 32;
-  const rect = hourLines.getBoundingClientRect();
-  const y = event.clientY - rect.top + hourLines.scrollTop - initialDragOffsetY.value;
-  const totalHours = Math.floor(y / hourHeight);
-  const minutes = Math.round((y % hourHeight) / hourHeight * 60);
-  const hours = Math.min(23, Math.max(0, totalHours));
-  const validMinutes = Math.min(59, Math.max(0, minutes));
-  const newTime = `${hours.toString().padStart(2, "0")}:${validMinutes.toString().padStart(2, "0")}`;
-
-  const originalSchedule = getTaskSchedule(draggedTask.value, draggedDate.value);
-  const originalStartTime = originalSchedule ? originalSchedule.startTime : "00:00";
-  const originalEndTime = originalSchedule ? originalSchedule.endTime : "01:00";
-  const [startHours, startMinutes] = originalStartTime.split(":").map(Number);
-  const [endHours, endMinutes] = originalEndTime.split(":").map(Number);
-
-  let newStartTime, newEndTime;
-  if (dragEdge.value === "top") {
-    newStartTime = newTime;
-    newEndTime = originalEndTime;
-  } else if (dragEdge.value === "bottom") {
-    newEndTime = newTime;
-    newStartTime = originalStartTime;
-  } else if (dragEdge.value === "middle") {
-    newStartTime = newTime;
-    const newStartTotalMinutes = hours * 60 + validMinutes;
-    const originalDurationMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
-    const newEndTotalMinutes = newStartTotalMinutes + originalDurationMinutes;
-    const newEndHours = Math.floor(newEndTotalMinutes / 60) % 24;
-    const newEndMinutes = newEndTotalMinutes % 60;
-    newEndTime = `${newEndHours.toString().padStart(2, "0")}:${newEndMinutes.toString().padStart(2, "0")}`;
-  }
-
-  const updatedTask = { ...draggedTask.value };
-  if (updatedTask.scheduledDates) {
-    const updatedSchedule = updatedTask.scheduledDates.map(d =>
-      d.date === date ? { ...d, startTime: newStartTime, endTime: newEndTime } : d
-    );
-    updatedTask.scheduledDates = updatedSchedule;
-  } else if (updatedTask.timesByDate) {
-    updatedTask.timesByDate = {
-      ...updatedTask.timesByDate,
-      [date]: { startTime: newStartTime, endTime: newEndTime },
-    };
-  } else {
-    updatedTask.scheduledDates = [{ date, startTime: newStartTime, endTime: newEndTime }];
-    updatedTask.type = "recurring";
-  }
-
-  if (date !== draggedDate.value) {
-    if (updatedTask.type === "one-time") {
-      updatedTask.dates = updatedTask.dates ? updatedTask.dates.filter((d) => d !== draggedDate.value) : [];
-      updatedTask.dates.push(date);
-    }
-    if (updatedTask.scheduledDates) {
-      updatedTask.scheduledDates = updatedTask.scheduledDates.filter(d => d.date !== draggedDate.value);
-      updatedTask.scheduledDates.push({ date, startTime: newStartTime, endTime: newEndTime });
-    } else if (updatedTask.timesByDate) {
-      delete updatedTask.timesByDate[draggedDate.value];
-      updatedTask.timesByDate[date] = { startTime: newStartTime, endTime: newEndTime };
-    }
-  }
-
-  await taskStore.updateTask(draggedTask.value.id, updatedTask);
-  taskCache.value.clear();
-
-  if (draggedTaskElement.value) {
-    draggedTaskElement.value.style.opacity = "1";
-  }
-
-  draggedTask.value = null;
-  draggedDate.value = null;
-  draggedTaskElement.value = null;
-  initialDragOffsetY.value = 0;
-  dragEdge.value = null;
-  originalHeight.value = 0;
-};
-
+/* --------------------------------------------------------------
+   Taak‑acties
+   -------------------------------------------------------------- */
 const toggleTaskCompletion = async (task, date) => {
-  const taskId = task.id;
-  await taskStore.toggleTaskInstanceCompletion(taskId, date);
+  await taskStore.toggleTaskInstanceCompletion(task.id, date);
   taskCache.value.clear();
-  await nextTick();
 };
 
 const deleteTaskInstance = async (task, date) => {
-  const taskId = task.id;
-  await taskStore.deleteTaskInstance(taskId, date);
+  await taskStore.deleteTaskInstance(task.id, date);
   taskCache.value.clear();
-  await nextTick();
 };
 </script>
 
 <style scoped>
 .home {
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2.5em 1.5em 2em 1.5em;
   font-size: 16px;
-  position: relative;
   min-height: 100vh;
-  padding-bottom: 80px;
-}
-
-.week-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.week-navigation button {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.week-navigation button:hover {
-  background: #0056b3;
+  box-sizing: border-box;
 }
 
 .week {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2.2em;
+  width: 100%;
 }
 
-.day {
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  position: relative;
+.week.single-day {
+  justify-content: center;
 }
 
-.day-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.day-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 1.1em;
-  font-weight: bold;
-}
-
-.day-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.day-actions .icon-button {
-  padding: 5px;
-  font-size: 1em;
-  border: none;
-  background: #007bff;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.day-actions .icon-button:hover {
-  background: #0056b3;
-}
-
-.day-actions .icon-button.has-diary {
-  background: #28a745;
-}
-
-.day-actions .icon-button.has-diary:hover {
-  background: #218838;
-}
-
-.hour-lines {
-  position: relative;
-  padding-left: 60px;
-  min-height: 15em;
-  max-height: 15em;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #007bff #f1f1f1;
-  font-size: 16px;
-}
-
-.hour-lines::-webkit-scrollbar {
-  width: 6px;
-}
-
-.hour-lines::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.hour-lines::-webkit-scrollbar-thumb {
-  background: #007bff;
-  border-radius: 3px;
-}
-
-.hour-lines::-webkit-scrollbar-thumb:hover {
-  background: #0056b3;
-}
-
-.hour-line {
-  border-top: 1px solid #dee2e6;
-  height: 2em;
-  line-height: 2em;
-  color: #666;
-  font-size: 16px;
-  position: relative;
+.week .day-column {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
-.task {
-  position: absolute;
-  left: 60px;
-  right: 10px;
-  background: #ffffff;
-  border: none;
-  padding: 0;
-  font-size: 1em;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: stretch;
-  cursor: move;
-  z-index: 10;
-  min-height: 32px;
-}
-
-.task-edge {
-  height: 5px;
-  background: #007bff;
-  cursor: ns-resize;
-}
-
-.top-edge {
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-
-.bottom-edge {
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-
-.task-content {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 5px;
-  background: #ffffff;
-}
-
-.task:hover {
-  outline: 1px solid #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-.task-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.task-name {
-  cursor: pointer;
-  font-size: 1em;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-  position: relative;
-}
-
-.task-name:hover::after {
-  content: attr(title);
-  visibility: hidden;
-  background: #333;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  white-space: nowrap;
-  font-size: 0.8em;
-}
-
-.task-name:hover[title]::after {
-  visibility: visible;
-}
-
-.task-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.task-actions .icon-button {
-  padding: 5px;
-  font-size: 1em;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #333;
-  transition: color 0.2s;
-}
-
-.task-actions .icon-button:hover {
-  color: #007bff;
-}
-
-h1,
-h2 {
-  color: #333;
+h1 {
+  color: var(--color-primary);
   text-align: center;
+  font-size: 1.1em;
+  margin-bottom: 1.2em;
+  font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 </style>

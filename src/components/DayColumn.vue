@@ -1,93 +1,114 @@
 <template>
-    <div class="day">
-        <div class="day-header">
-            <h3>{{ formatShortDate(day.date) }}</h3>
-            <div class="day-actions">
-                <button class="icon-button" :class="{ 'has-diary': hasDiaryEntry(day.date) }"
-                    @click="$emit('openDiary', day.date)" aria-label="Dagboek voor deze dag">
-                    📓
-                </button>
-            </div>
-        </div>
-        <div class="hour-lines" :ref="hourLinesRef" @dragover.prevent="$emit('dragOver', $event, day.date)"
-            @drop="$emit('drop', $event, day.date)">
-            <div v-for="(hour, idx) in hourLines" :key="hour" class="hour-line" :data-hour="hour"
-                :style="`--hour-index: ${idx}`">
+    <div class="day-column" :class="{ 'single-day': isSingleDay }">
+        <div class="hour-lines" ref="hourLinesRef">
+            <div v-for="hour in hourLines" :key="hour" class="hour-line" :data-hour="hour">
                 {{ hour }}:00
             </div>
-            <TaskItem v-for="task in tasksForDay(day.date)"
-                :key="`${task.id}-${day.date}-${getTaskTimeKey(task, day.date)}`" :task="task" :date="day.date"
-                :getTaskPosition="getTaskPosition" :getTaskSchedule="getTaskSchedule" :getTaskTimeKey="getTaskTimeKey"
-                @dragStart="(e, t, d, edge) => $emit('dragStart', e, t, d, edge)"
-                @toggleCompletion="(t, d) => $emit('toggleCompletion', t, d)"
-                @deleteInstance="(t, d) => $emit('deleteInstance', t, d)" @showTooltip="showTooltip"
-                @editTask="(id) => $emit('editTask', id)" />
+        </div>
+
+        <div v-for="task in tasksForDay(day.date)" :key="getTaskTimeKey(task, day.date)" class="task"
+            :style="getTaskPosition(task, day.date)" @click="$emit('editTask', task.id)"
+            @mouseenter="showTooltip($event, task.name || task.title || 'Taak')">
+            <div class="task-content">{{ task.name || task.title || 'Taak' }}</div>
         </div>
     </div>
 </template>
 
 <script setup>
-import TaskItem from './TaskItem.vue';
-defineProps([
+const props = defineProps([
     'day', 'hourLines', 'hourLinesRef', 'tasksForDay', 'getTaskPosition',
-    'getTaskSchedule', 'getTaskTimeKey', 'showTooltip', 'formatShortDate', 'hasDiaryEntry'
+    'getTaskSchedule', 'getTaskTimeKey', 'showTooltip', 'formatShortDate',
+    'hasDiaryEntry', 'isSingleDay'
+]);
+
+defineEmits([
+    'openDiary', 'toggleCompletion', 'deleteInstance', 'editTask'
 ]);
 </script>
 
 <style scoped>
-.day {
-    background: #f9f9f9;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    padding: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.day-column {
+    width: 100%;
+    box-sizing: border-box;
     position: relative;
-}
-
-.day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.day-actions .icon-button {
-    background: transparent;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.day-actions .icon-button.has-diary {
-    color: #007bff;
+    overflow-y: auto;
+    max-height: 80vh;
+    padding-bottom: 20px;
 }
 
 .hour-lines {
     position: relative;
-    width: 100%;
-    height: 260px;
-    /* verhoogde hoogte */
-    min-height: 260px;
-    background: #fff;
-    border-radius: 4px;
-    padding-left: 60px;
-    box-sizing: border-box;
-    overflow-y: auto;
 }
 
 .hour-line {
-    position: absolute;
-    left: 0;
-    width: 60px;
     height: 32px;
-    border-bottom: 1px solid #eee;
-    color: #aaa;
+    border-top: 1px solid #ddd;
     font-size: 0.9em;
     padding-left: 8px;
-    line-height: 32px;
-    background: transparent;
-    z-index: 1;
-    top: calc(var(--hour-index, 0) * 32px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.day-column.single-day .hour-line {
+    height: 48px !important;
+    font-size: 1.1em !important;
+    border-top: 2px solid #ccc;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 123, 255, 0.03) 100%);
+}
+
+.task {
+    position: absolute;
+    width: calc(100% - 60px);
+    left: 60px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.task:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+    z-index: 20;
+}
+
+.task-content {
+    padding: 8px 12px;
+    background: rgba(0, 123, 255, 0.15);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.day-column.single-day .task-content {
+    padding: 12px 16px;
+    font-size: 1.1em;
+}
+
+/* Scrollbar */
+.day-column::-webkit-scrollbar {
+    width: 8px;
+}
+
+.day-column::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.day-column::-webkit-scrollbar-thumb {
+    background: #007bff;
+    border-radius: 4px;
+}
+
+.day-column::-webkit-scrollbar-thumb:hover {
+    background: #0056b3;
 }
 </style>
