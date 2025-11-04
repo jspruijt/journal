@@ -1,14 +1,15 @@
 <!-- WeekNavigation.vue -->
 <template>
   <div class="week-navigation">
-    <button class="spacex-blue-btn" @click="previousWeek">VORIGE WEEK</button>
-    <div class="day-buttons">
-      <button v-for="day in weekDays" :key="day.date" class="day-button" @click="selectDay(day.date)"
-        :class="{ active: selectedDay === day.date }">
-        {{ formatDayNumber(day.date) }}
-      </button>
-    </div>
-    <button class="spacex-blue-btn" @click="nextWeek">VOLGENDE WEEK</button>
+    <button class="spacex-blue-btn" @click="previousWeek">
+      << </button>
+        <div class="day-buttons">
+          <button v-for="day in weekDays" :key="day.date" class="day-button" @click="selectDay(day.date)"
+            :class="{ active: selectedDay === day.date }">
+            {{ formatDayNumber(day.date) }}
+          </button>
+        </div>
+        <button class="spacex-blue-btn" @click="nextWeek">>></button>
   </div>
 </template>
 
@@ -50,7 +51,7 @@ const formatDayNumber = (date) => {
   color: #fff;
   border: none;
   border-radius: 0;
-  padding: 0.5em 1.7em;
+  padding: 0.5em 0.7em;
   font-size: 1em;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
@@ -68,7 +69,7 @@ const formatDayNumber = (date) => {
 
 .day-buttons {
   display: flex;
-  gap: 0.5em;
+  gap: 0.3em;
 }
 
 .day-button {
@@ -76,8 +77,8 @@ const formatDayNumber = (date) => {
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   font-size: 1em;
   cursor: pointer;
   transition: background var(--transition), color var(--transition), transform var(--transition);

@@ -1,27 +1,39 @@
 <template>
   <div id="app">
-    <AuthButtons v-if="!user" />
-    <div v-if="user">
-      <header class="main-header">
-        <AuthButtons :user="user" />
-        <nav class="main-nav">
-          <button class="spacex-nav-btn" @click="$router.push('/')">HOME</button>
-          <button class="spacex-nav-btn" @click="$router.push('/unplanned-tasks')">ONGEPLANDE TAKEN <span
-              class="counter">{{ unplannedTasksCount }}</span></button>
-          <button class="spacex-nav-btn" @click="$router.push('/goals')">DOELEN <span class="counter">{{
-            activeGoalsCount }}</span></button>
-          <button class="spacex-nav-btn" @click="$router.push('/dashboard')">DASHBOARD</button>
-        </nav>
-      </header>
-      <main class="main-content">
-        <router-view />
-      </main>
-    </div>
-    <div v-else>
+    <header class="main-header">
+      <nav class="menu">
+        <!-- Hamburger alleen op mobiel -->
+        <button class="hamburger" @click="menuOpen = !menuOpen" v-if="isMobile">
+          <span></span><span></span><span></span>
+        </button>
+        <!-- Desktop menu altijd zichtbaar -->
+        <div class="menu-items-desktop" v-if="!isMobile">
+          <button @click="$router.push('/')">Home</button>
+          <button @click="$router.push('/unplanned-tasks')">Ongeplande taken</button>
+          <button @click="$router.push('/goals')">Doelen</button>
+          <button @click="$router.push('/dashboard')">Dashboard</button>
+        </div>
+        <!-- Account knop altijd rechts -->
+        <div class="account-btn">
+          <AuthButtons :user="user" />
+        </div>
+        <!-- Mobiel menu als overlay -->
+        <transition name="fade">
+          <div v-if="menuOpen && isMobile" class="menu-items-popup">
+            <button @click="$router.push('/'); menuOpen = !menuOpen;">Home</button>
+            <button @click="$router.push('/unplanned-tasks'); menuOpen = !menuOpen;">Ongeplande taken</button>
+            <button @click="$router.push('/goals'); menuOpen = !menuOpen;">Doelen</button>
+            <button @click="$router.push('/dashboard'); menuOpen = !menuOpen;">Dashboard</button>
+          </div>
+        </transition>
+      </nav>
+    </header>
+    <main class="main-content">
       <router-view />
-    </div>
+    </main>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -33,6 +45,13 @@ import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const user = ref(null);
+const menuOpen = ref(false);
+
+// Detecteer mobiel scherm
+const isMobile = ref(window.innerWidth <= 700);
+window.addEventListener('resize', () => {
+  isMobile.value = window.innerWidth <= 700;
+});
 
 onMounted(() => {
   const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -70,63 +89,157 @@ const activeGoalsCount = computed(() => {
   color: var(--color-text);
 }
 
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
-}
-
 .main-header {
+  width: 100%;
+  background: var(--color-bg-alt, #181a20);
+  border-bottom: 1px solid #222;
+  padding: 0.5em 0;
+  position: relative;
+}
+
+.menu {
   display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.hamburger {
+  display: none;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 1.5em 2em 0 2em;
-  background: var(--color-bg-alt);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1.5em;
-}
-
-.main-nav {
-  display: flex;
-  gap: 2.2em;
-  margin-top: 1.2em;
-}
-
-.spacex-nav-btn {
-  background: transparent;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-  border-radius: 0;
-  padding: 0.35em 1.2em;
-  font-size: 0.98em;
-  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border var(--transition), transform var(--transition);
+  margin-right: 1em;
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 1200;
 }
 
-.spacex-nav-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-bg);
-  border-color: var(--color-accent);
-  transform: translateY(-2px) scale(1.04);
+.hamburger span {
+  display: block;
+  height: 1px;
+  width: 80%;
+  background: #fff;
+  margin: 3px 3px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.counter {
-  background: var(--color-danger);
+.menu-items-desktop {
+  display: flex;
+  margin: auto;
+  gap: 1em;
+}
+
+.menu-items-desktop button {
+  background: #007bff;
   color: #fff;
-  border-radius: 50%;
-  padding: 0.2em 0.7em;
-  font-size: 0.9em;
-  margin-left: 0.5em;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 1em;
+  cursor: pointer;
 }
 
-.main-content {
-  padding: 2em;
-  max-width: 900px;
-  margin: 0 auto;
+.account-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1200;
+  background: none;
+  box-shadow: none;
+}
+
+.menu-items-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.98);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.9);
+  border-radius: 0;
+  padding: 65px 16px 16px 16px;
+  z-index: 1000;
+  flex-direction: column;
+  gap: 1em;
+  align-items: flex-start;
+}
+
+.menu-items-popup button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 1em;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 700px) {
+  .menu-items-desktop {
+    display: none;
+  }
+
+  .menu-items-popup {
+    display: flex;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .account-btn {
+    position: absolute;
+    right: 5px;
+    top: 16px;
+    margin: 0;
+    z-index: 1200;
+    background: none;
+    box-shadow: none;
+  }
+
+  .main-content {
+    padding: 0em;
+  }
+}
+
+@media (min-width: 701px) {
+  .menu-items-popup {
+    display: none !important;
+  }
+
+  .hamburger {
+    display: none !important;
+  }
+
+  .menu-items-desktop {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .account-btn {
+    position: static;
+    margin-left: auto;
+    z-index: 1;
+  }
+
+  .main-content {
+    padding: 2em;
+    max-width: 900px;
+    margin: 0 auto;
+  }
 }
 </style>

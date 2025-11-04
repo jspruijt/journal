@@ -77,10 +77,10 @@ defineEmits([
 }
 
 .task-content {
-    padding: 8px 12px;
+    padding: 1px 1px;
     background: rgba(0, 123, 255, 0.15);
     border: 1px solid rgba(0, 123, 255, 0.3);
-    font-size: 0.95em;
+    font-size: 0.65em;
     font-weight: 500;
     color: var(--color-text);
     white-space: nowrap;
@@ -89,8 +89,8 @@ defineEmits([
 }
 
 .day-column.single-day .task-content {
-    padding: 12px 16px;
-    font-size: 1.1em;
+    padding: 1px 1px;
+    font-size: 0.65em;
 }
 
 /* Scrollbar */

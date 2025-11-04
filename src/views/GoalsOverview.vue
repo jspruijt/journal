@@ -23,7 +23,7 @@
           <p class="deadline" v-if="goal.deadline">Deadline: {{ formatDate(goal.deadline) }}</p>
           <p class="deadline" v-else>Geen deadline</p>
           <p class="next-eval" v-if="goal.nextEvaluationDate">Volgende evaluatie: {{ formatDate(goal.nextEvaluationDate)
-          }}</p>
+            }}</p>
         </div>
         <div class="goal-actions">
           <button class="spacex-blue-btn" @click="toggleCompletion(goal.id)"
@@ -144,6 +144,50 @@ async function deleteGoal(goalId) {
   gap: 2em;
 }
 
+@media (max-width: 700px) {
+
+  .goals-overview-container,
+  .goals-overview,
+  .goals-list {
+    padding-left: 1em;
+    padding-right: 1em;
+    box-sizing: border-box;
+  }
+
+  .goal-item {
+    padding: 2em 0.5em;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .goal-content {
+    margin-bottom: 1em;
+  }
+
+  .goal-actions {
+    flex-direction: row;
+    gap: 0.7em;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .goal-item {
+    padding: 2em 0.5em;
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+}
+
+@media (min-width: 701px) {
+  .goal-item {
+    padding: 2em 2.5em;
+  }
+}
+
 .goal-item {
   display: flex;
   justify-content: space-between;
@@ -152,7 +196,6 @@ async function deleteGoal(goalId) {
   background: var(--color-bg-alt);
   border-radius: 0;
   box-shadow: var(--shadow);
-  padding: 2em 2.5em;
   transition: box-shadow var(--transition), background var(--transition);
 }
 

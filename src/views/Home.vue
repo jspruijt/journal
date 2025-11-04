@@ -248,10 +248,21 @@ const deleteTaskInstance = async (task, date) => {
 </script>
 
 <style scoped>
+@media (max-width: 700px) {
+  .home {
+    padding: 0em 0.2em 0em 0.2em;
+  }
+}
+
+@media (min-width: 701px) {
+  .home {
+    padding: 2.5em 1.5em 2em 1.5em;
+  }
+}
+
 .home {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2.5em 1.5em 2em 1.5em;
   font-size: 16px;
   min-height: 100vh;
   box-sizing: border-box;

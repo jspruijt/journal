@@ -67,8 +67,8 @@ onUnmounted(() => {
 <style scoped>
 .auth-buttons {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 0px;
+    right: 5px;
     z-index: 1000;
 }
 
@@ -80,7 +80,7 @@ onUnmounted(() => {
 
 .spacex-nav-btn.account-btn {
     padding: 0.2em 1.1em;
-    font-size: 1.2em;
+    font-size: 0.9em;
     display: flex;
     align-items: center;
     justify-content: center;

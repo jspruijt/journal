@@ -63,7 +63,7 @@ button, .action-button {
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
   border-radius: var(--radius);
-  padding: 0.7em 1.6em;
+  padding: 0em 0em;
   font-size: 1em;
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;

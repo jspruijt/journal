@@ -32,9 +32,10 @@
       <div v-if="isLoading" class="loading-message">Laden...</div>
       <div v-if="error" class="loading-message">{{ error }}</div>
       <div class="pagination" v-if="!isLoading && !error">
-        <button class="spacex-blue-btn" @click="previousPage" :disabled="currentPage === 1">Vorige</button>
-        <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
-        <button class="spacex-blue-btn" @click="nextPage" :disabled="currentPage === totalPages">Volgende</button>
+        <button class="spacex-blue-btn" @click="previousPage" :disabled="currentPage === 1">
+          << </button>
+            <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+            <button class="spacex-blue-btn" @click="nextPage" :disabled="currentPage === totalPages">>></button>
       </div>
     </div>
 
@@ -255,13 +256,33 @@ const formatDate = (dateStr) => {
   margin-bottom: 1.2em;
 }
 
+@media (max-width: 700px) {
+  .card {
+    padding: 2em 0em;
+  }
+
+  .dashboard {
+    padding: 2em 0.2em 2em 0.2em;
+  }
+
+  .charts {
+    flex-direction: column;
+    gap: 1.5em;
+  }
+}
+
+@media (min-width: 701px) {
+  .card {
+    padding: 2em 2.5em;
+  }
+}
+
 .card {
   margin-bottom: 2.2em;
   background: var(--color-bg-alt);
   border-radius: 0;
   box-shadow: var(--shadow);
   border: 1.5px solid var(--color-border);
-  padding: 2em 2.5em;
   transition: box-shadow var(--transition), background var(--transition);
 }
 

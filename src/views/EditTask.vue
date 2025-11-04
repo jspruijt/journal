@@ -314,7 +314,7 @@ h1 {
   color: #fff;
   border: none;
   border-radius: 0;
-  padding: 0.7em 2em;
+  padding: 0.1em 0.1em;
   font-size: 0.95em;
   font-weight: 700;
   text-transform: uppercase;
@@ -357,5 +357,6 @@ h1 {
   .loading {
   color: var(--spacex-blue);
   }
+
   
 </style>
