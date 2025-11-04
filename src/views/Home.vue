@@ -200,7 +200,7 @@ const getTaskPosition = (task, date) => {
   const scale = displayHeight / baseHeight;
 
   if (!schedule?.startTime || !schedule?.endTime) {
-    return { top: "0px", height: `${displayHeight}px`, background: "rgba(255,0,0,0.2)" };
+    return { top: "0px", height: `${displayHeight}px` };
   }
 
   const dayIdx = displayedDays.value.findIndex(d => d && d.date === date);
@@ -222,8 +222,7 @@ const getTaskPosition = (task, date) => {
 
   return {
     top: `${visualTop}px`,
-    height: `${visualHeight}px`,
-    background: "rgba(0,255,0,0.2)",
+    height: `${visualHeight}px`
   };
 };
 

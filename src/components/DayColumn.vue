@@ -1,5 +1,13 @@
 <template>
     <div class="day-column" :class="{ 'single-day': isSingleDay }">
+        <div class="day-header">
+            <span>{{ formatShortDate(day.date) }}</span>
+            <button class="diary-btn" @click="$emit('openDiary', day.date)"
+                :title="hasDiaryEntry(day.date) ? 'Bekijk dagboek' : 'Voeg dagboek toe'">
+                <span v-if="hasDiaryEntry(day.date)">📖</span>
+                <span v-else>➕📖</span>
+            </button>
+        </div>
         <div class="hour-lines" ref="hourLinesRef">
             <div v-for="hour in hourLines" :key="hour" class="hour-line" :data-hour="hour">
                 {{ hour }}:00
@@ -7,9 +15,16 @@
         </div>
 
         <div v-for="task in tasksForDay(day.date)" :key="getTaskTimeKey(task, day.date)" class="task"
-            :style="getTaskPosition(task, day.date)" @click="$emit('editTask', task.id)"
-            @mouseenter="showTooltip($event, task.name || task.title || 'Taak')">
-            <div class="task-content">{{ task.name || task.title || 'Taak' }}</div>
+            :style="getTaskPosition(task, day.date)">
+            <div class="task-row">
+                <input type="checkbox" class="complete-checkbox" :checked="isTaskInstanceCompleted(task, day.date)"
+                    @change="$emit('toggleCompletion', task, day.date)"
+                    :title="isTaskInstanceCompleted(task, day.date) ? 'Markeer als niet voltooid' : 'Markeer als voltooid'" />
+                <div class="task-content" @click="$emit('editTask', task.id)"
+                    @mouseenter="showTooltip($event, task.name || task.title || 'Taak')">
+                    {{ task.name || task.title || 'Taak' }}
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -24,6 +39,24 @@ const props = defineProps([
 defineEmits([
     'openDiary', 'toggleCompletion', 'deleteInstance', 'editTask'
 ]);
+
+function isTaskInstanceCompleted(task, date) {
+    // One-time task: just use task.completed
+    if (task.type === 'one-time') {
+        return !!task.completed;
+    }
+    // Recurring: check scheduledDates or timesByDate for this date
+    if (task.type === 'recurring') {
+        if (task.scheduledDates && Array.isArray(task.scheduledDates)) {
+            const sched = task.scheduledDates.find(d => d.date === date);
+            return sched ? !!sched.completed : false;
+        }
+        if (task.timesByDate && task.timesByDate[date]) {
+            return !!task.timesByDate[date].completed;
+        }
+    }
+    return false;
+}
 </script>
 
 <style scoped>
@@ -34,6 +67,29 @@ defineEmits([
     overflow-y: auto;
     max-height: 80vh;
     padding-bottom: 20px;
+}
+
+.day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5em 0.5em 0.5em 0;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.diary-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 0.5em;
+    color: var(--color-primary, #007bff);
+    transition: color 0.2s;
+}
+
+.diary-btn:hover {
+    color: var(--color-primary-hover, #0056b3);
 }
 
 .hour-lines {
@@ -58,6 +114,7 @@ defineEmits([
     background: linear-gradient(180deg, transparent 0%, rgba(0, 123, 255, 0.03) 100%);
 }
 
+
 .task {
     position: absolute;
     width: calc(100% - 60px);
@@ -68,6 +125,9 @@ defineEmits([
     transition: all 0.2s ease;
     z-index: 10;
     cursor: pointer;
+    background: #0056b3;
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .task:hover {
@@ -76,10 +136,14 @@ defineEmits([
     z-index: 20;
 }
 
+.task-row {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
 .task-content {
     padding: 1px 1px;
-    background: rgba(0, 123, 255, 0.15);
-    border: 1px solid rgba(0, 123, 255, 0.3);
     font-size: 0.65em;
     font-weight: 500;
     color: var(--color-text);
@@ -91,6 +155,16 @@ defineEmits([
 .day-column.single-day .task-content {
     padding: 1px 1px;
     font-size: 0.65em;
+    text-shadow: black 0px 0px 4px;
+}
+
+.complete-checkbox {
+    margin-right: 0.5em;
+    margin-bottom: 0px;
+    accent-color: var(--color-primary, #007bff);
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: middle;
 }
 
 /* Scrollbar */
