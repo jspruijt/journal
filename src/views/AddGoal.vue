@@ -2,7 +2,7 @@
   <div class="add-goal card">
     <h1>Nieuw doel toevoegen</h1>
     <div v-if="goalStore.isLoading" class="loading">Laden...</div>
-    <div v-else-if="goalStore.error" class="error">{{ goalStore.error }}</div>
+    <div v-else-if="goalStore.error" class="error" ref="errorRef">{{ goalStore.error }}</div>
     <form @submit.prevent="addGoal" class="goal-form">
       <div class="form-group">
         <label for="title">Titel</label>
@@ -22,13 +22,11 @@
         <input v-model="goal.nextEvaluationDate" id="nextEvaluationDate" type="date" />
       </div>
       <div class="form-group">
-        <label>Stappen / Benodigdheden</label>
-        <div v-for="(step, index) in goal.steps" :key="index" class="step-row">
-          <input v-model="goal.steps[index]" type="text" :placeholder="`Stap ${index + 1}`" />
-          <button class="spacex-blue-btn delete" type="button" @click="removeStep(index)"
-            :disabled="goal.steps.length <= 1">-</button>
+        <label>Gekoppelde taken</label>
+        <div>Er zijn nog geen taken gekoppeld.</div>
+        <div class="form-actions">
+          <button class="spacex-blue-btn" type="button" @click.stop.prevent="saveAndLink">Taak koppelen</button>
         </div>
-        <button class="spacex-blue-btn" type="button" @click="addStep">Stap toevoegen</button>
       </div>
       <div class="form-group">
         <label for="howToAchieve">Hoe behaal ik dit doel</label>
@@ -50,28 +48,59 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useGoalStore } from '../stores/goals';
+import { useTaskStore } from '../stores/tasks';
 import { useRouter } from 'vue-router';
 
 const goalStore = useGoalStore();
+const taskStore = useTaskStore();
 const router = useRouter();
 const goal = ref({
   title: '',
   description: '',
   deadline: '',
   nextEvaluationDate: '',
-  steps: [''],
   howToAchieve: '',
   fallbackPlan: '',
 });
+const selectedTaskIds = ref([]);
+const errorRef = ref(null);
 
+const tasksForUser = computed(() => taskStore.tasks.filter(t => !t.goalId));
+
+onMounted(async () => {
+  await taskStore.loadTasks();
+});
+
+// Laat addGoal het nieuwe goalId retourneren
 async function addGoal() {
   if (!goal.value.title.trim() || goal.value.title.includes("<!--")) {
     goalStore.error = 'Titel is verplicht en mag geen ongeldige HTML bevatten (bijv. <!--).';
-    return;
+    return null;
   }
-  // ...bestaande addGoal logica...
+  const newGoal = {
+    ...goal.value,
+    nextEvaluationDate: goal.value.nextEvaluationDate || null,
+  };
+  // addGoal geeft nu het id terug
+  const newGoalId = await goalStore.addGoal(newGoal);
+  return newGoalId;
+}
+
+// saveAndLink navigeert pas als goalId bekend is
+async function saveAndLink() {
+  const newGoalId = await addGoal();
+  if (newGoalId) {
+    router.push(`/goal/${newGoalId}/link-task`);
+  } else if (goalStore.error) {
+    // Scroll naar de foutmelding voor betere UX
+    await nextTick();
+    if (errorRef.value) {
+      errorRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
 }
 </script>
 

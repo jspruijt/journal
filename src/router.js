@@ -11,6 +11,7 @@ import AddGoal from './views/AddGoal.vue';
 import EditGoal from './views/EditGoal.vue';
 import GoalDetail from './views/GoalDetail.vue';
 
+import LinkTaskToGoal from './views/LinkTaskToGoal.vue';
 const routes = [
   { path: "/", component: Home },
   { path: "/unplanned-tasks", component: UnplannedTasks },
@@ -22,6 +23,7 @@ const routes = [
   { path: '/add-goal', component: AddGoal },
   { path: '/goal/:id', component: GoalDetail },
   { path: '/edit-goal/:id', component: EditGoal },
+  { path: '/goal/:goalId/link-task', component: LinkTaskToGoal },
   { path: '/login', component: Login },
 ];
 // Export een logout functie voor gebruik in de app

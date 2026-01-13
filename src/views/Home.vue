@@ -210,8 +210,12 @@ const getTaskPosition = (task, date) => {
     return { top: "0px", height: `${displayHeight}px` };
   }
 
-  const [sh, sm] = schedule.startTime.split(":").map(Number);
-  const [eh, em] = schedule.endTime.split(":").map(Number);
+  // Correctie: voeg 1 uur toe aan de starttijd zodat taken niet te vroeg staan
+  let [sh, sm] = schedule.startTime.split(":").map(Number);
+  let [eh, em] = schedule.endTime.split(":").map(Number);
+
+  sh = sh + 1; // corrigeer de starttijd met +1 uur
+  eh = eh + 1; // corrigeer de eindtijd met +1 uur
 
   const logicalTop = positions[sh.toString().padStart(2, "0")] + (sm / 60) * baseHeight;
   const durationMin = (eh * 60 + em) - (sh * 60 + sm);

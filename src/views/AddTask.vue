@@ -67,12 +67,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+
+import { ref, onMounted } from 'vue';
 import { useTaskStore } from '../stores/tasks';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const taskStore = useTaskStore();
 const router = useRouter();
+const route = useRoute();
 const task = ref({
   name: '',
   type: 'one-time',
@@ -85,6 +87,13 @@ const task = ref({
   tagsInput: '',
   completed: false,
   customDates: [''],
+  goalId: null,
+});
+
+onMounted(() => {
+  if (route.query.goalId) {
+    task.value.goalId = route.query.goalId;
+  }
 });
 
 const saveTask = async () => {
@@ -98,6 +107,7 @@ const saveTask = async () => {
     type: task.value.type,
     completed: task.value.completed,
     tags: task.value.tagsInput ? task.value.tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+    goalId: task.value.goalId || null,
   };
 
   if (newTask.type === 'one-time') {

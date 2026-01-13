@@ -10,14 +10,19 @@
                 <span v-if="goal.createdAt">Aangemaakt op: {{ formatDate(goal.createdAt) }}</span>
                 <span v-if="goal.deadline">Deadline: {{ formatDate(goal.deadline) }}</span>
                 <span v-if="goal.nextEvaluationDate">Volgende evaluatie: {{ formatDate(goal.nextEvaluationDate)
-                    }}</span>
+                }}</span>
             </div>
-            <div v-if="goal.steps && goal.steps.length" class="section">
-                <h3>Stappen / Benodigdheden</h3>
-                <ol>
-                    <li v-for="(s, i) in goal.steps" :key="i">{{ s }}</li>
+            <div class="section">
+                <h3>Taken gekoppeld aan dit doel</h3>
+                <div v-if="tasksForGoal.length === 0">Er zijn nog geen taken gekoppeld.</div>
+                <ol v-else>
+                    <li v-for="task in tasksForGoal" :key="task.id">{{ task.name }}</li>
                 </ol>
+                <button class="spacex-blue-btn" @click="linkTaskToGoal">Taak koppelen</button>
             </div>
+            function linkTaskToGoal() {
+            router.push(`/goal/${goal.value.id}/link-task`);
+            }
             <div v-if="goal.howToAchieve" class="section">
                 <h3>Hoe behaal ik dit doel</h3>
                 <p>{{ goal.howToAchieve }}</p>
@@ -28,7 +33,7 @@
             </div>
             <div class="actions">
                 <button @click="toggleCompletion(goal.id)">{{ goal.completed ? 'Markeer onvoltooid' : 'Markeer voltooid'
-                    }}</button>
+                }}</button>
                 <button @click="$router.push(`/edit-goal/${goal.id}`)">Bewerk</button>
                 <button class="delete" @click="deleteGoal(goal.id)">Verwijder</button>
             </div>
@@ -37,17 +42,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useGoalStore } from '../stores/goals';
+import { useTaskStore } from '../stores/tasks';
 import { useRoute, useRouter } from 'vue-router';
 
 const goalStore = useGoalStore();
+const taskStore = useTaskStore();
 const route = useRoute();
 const router = useRouter();
 const goal = ref(null);
 
+const tasksForGoal = computed(() => taskStore.tasks.filter(t => t.goalId === goal.value?.id));
+
 onMounted(async () => {
     await goalStore.loadGoals();
+    await taskStore.loadTasks();
     const id = route.params.id;
     const found = goalStore.goals.find(g => g.id === id);
     if (found) goal.value = found;

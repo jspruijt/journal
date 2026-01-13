@@ -72,7 +72,6 @@ export const useGoalStore = defineStore("goals", {
           userId: user.uid,
           createdAt: new Date().toISOString(),
           completed: false,
-          // new optional fields
           deadline: goal.deadline || null,
           nextEvaluationDate: goal.nextEvaluationDate || null,
           steps: goal.steps || [],
@@ -80,10 +79,12 @@ export const useGoalStore = defineStore("goals", {
           fallbackPlan: goal.fallbackPlan || '',
         });
         this.goals.push({ id: docRef.id, ...goal, userId: user.uid, createdAt: new Date().toISOString(), completed: false, deadline: goal.deadline || null, nextEvaluationDate: goal.nextEvaluationDate || null, steps: goal.steps || [], howToAchieve: goal.howToAchieve || '', fallbackPlan: goal.fallbackPlan || '' });
+        return docRef.id;
       } catch (error) {
         this.error = `Fout bij het toevoegen van een doel: ${error.message}`;
         console.error(this.error, error);
         await this.loadGoals();
+        return null;
       }
     },
     async updateGoal(goalId, updatedGoal) {
