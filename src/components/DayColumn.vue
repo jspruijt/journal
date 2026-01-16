@@ -17,9 +17,12 @@
         <div v-for="task in tasksForDay(day.date)" :key="getTaskTimeKey(task, day.date)" class="task"
             :style="getTaskPosition(task, day.date)">
             <div class="task-row">
-                <input type="checkbox" class="complete-checkbox" :checked="isTaskInstanceCompleted(task, day.date)"
-                    @change="$emit('toggleCompletion', task, day.date)"
-                    :title="isTaskInstanceCompleted(task, day.date) ? 'Markeer als niet voltooid' : 'Markeer als voltooid'" />
+                <label class="checkbox-label">
+                    <input type="checkbox" class="complete-checkbox" :checked="isTaskInstanceCompleted(task, day.date)"
+                        @change="$emit('toggleCompletion', task, day.date)"
+                        :title="isTaskInstanceCompleted(task, day.date) ? 'Markeer als niet voltooid' : 'Markeer als voltooid'" />
+                    <span class="custom-checkbox"></span>
+                </label>
                 <div class="task-content" @click="$emit('editTask', task.id)"
                     @mouseenter="showTooltip($event, task.name || task.title || 'Taak')">
                     {{ task.name || task.title || 'Taak' }}
@@ -159,12 +162,54 @@ function isTaskInstanceCompleted(task, date) {
 }
 
 .complete-checkbox {
-    margin-right: 0.5em;
-    margin-bottom: 0px;
-    accent-color: var(--color-primary, #007bff);
-    width: 1.1em;
-    height: 1.1em;
-    vertical-align: middle;
+    position: absolute;
+    opacity: 0;
+    width: 2em;
+    height: 2em;
+    margin: 0;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 0.7em;
+    min-width: 2em;
+    min-height: 2em;
+    cursor: pointer;
+}
+
+.custom-checkbox {
+    width: 2em;
+    height: 2em;
+    border: 2px solid var(--color-primary, #007bff);
+    border-radius: 0.3em;
+    background: var(--color-bg-alt);
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.complete-checkbox:checked+.custom-checkbox {
+    background: var(--color-primary, #007bff);
+    border-color: var(--color-primary, #007bff);
+}
+
+.complete-checkbox:checked+.custom-checkbox::after {
+    content: '';
+    position: absolute;
+    left: 0.5em;
+    top: 0.2em;
+    width: 0.5em;
+    height: 1em;
+    border: solid var(--color-bg);
+    border-width: 0 0.25em 0.25em 0;
+    transform: rotate(45deg);
+    display: block;
 }
 
 /* Scrollbar */
